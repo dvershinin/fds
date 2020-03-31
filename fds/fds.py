@@ -1,5 +1,4 @@
-from __future__ import unicode_literals
-
+import six
 import argparse
 import ipaddress
 import logging as log  # for verbose output
@@ -9,6 +8,7 @@ from .FirewallWrapper import FirewallWrapper
 
 def action_block(ip):
     fw = FirewallWrapper()
+    ip = six.text_type(ip)
     if not ipaddress.ip_address(ip):
         print('bad argument')
 

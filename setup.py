@@ -11,10 +11,8 @@ from setuptools import find_packages, setup
 import os
 
 install_requires = [
-    "netaddr",
-    "requests",
-    "tldextract",
-    "cloudflare>=2.3.1"
+    "six"
+    "netaddr"
 ]
 tests_requires = ["pytest", "flake8", "faker"]
 
