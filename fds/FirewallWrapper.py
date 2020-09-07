@@ -1,7 +1,7 @@
 import dbus
 from firewall.client import FirewallClient
 from firewall.client import FirewallClientIPSetSettings
-from netaddr import IPAddress
+# from netaddr import IPAddress
 import logging as log  # for verbose output
 
 
@@ -17,6 +17,8 @@ def do_maybe_already_enabled(func):
             else:
                 # re-raise :)
                 raise e
+
+
     return func_wrapper
 
 
@@ -32,6 +34,8 @@ def do_maybe_not_enabled(func):
             else:
                 # re-raise :)
                 raise e
+
+
     return func_wrapper
 
 
@@ -79,10 +83,7 @@ class FirewallWrapper:
         )
 
 
-
-
     def get_block_ipset_for_ip(self, ip):
-        ip = IPAddress(ip)
         if ip.version == 4:
             return self.get_block_ipset4()
         if ip.version == 6:
@@ -107,7 +108,9 @@ class FirewallWrapper:
             # TODO err: unsupported protocol
             raise Exception('Unsupported protocol')
         self.ensure_block_ipset_in_drop_zone(block_ipset)
-        block_ipset.addEntry(ip)
+        log.info('Adding IP address {} to block set {}'.format(ip, block_ipset.get_property('name')))
+        block_ipset.addEntry(str(ip))
+        log.info('Reloading FirewallD to apply permanent configuration')
         self.fw.reload()
 
 
@@ -120,7 +123,8 @@ class FirewallWrapper:
 
 
     def reset(self):
-        # firewalld up to this commit https://github.com/firewalld/firewalld/commit/f5ed30ce71755155493e78c13fd9036be8f70fc4
+        # firewalld up to this commit
+        # https://github.com/firewalld/firewalld/commit/f5ed30ce71755155493e78c13fd9036be8f70fc4
         # does not delete runtime ipsets, so we can only clear them? :(
         try:
             self.fw.setEntries(self.NETWORKBLOCK_IPSET4, [])
@@ -142,5 +146,3 @@ class FirewallWrapper:
         self.remove_ipset_from_zone(drop_zone, self.NETWORKBLOCK_IPSET6)
 
         self.fw.reload()
-
-

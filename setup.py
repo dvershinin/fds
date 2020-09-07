@@ -11,8 +11,9 @@ from setuptools import find_packages, setup
 import os
 
 install_requires = [
-    "six"
-    "netaddr"
+    'six',
+    'netaddr',
+    'cachecontrol'
 ]
 tests_requires = ["pytest", "flake8", "faker"]
 
@@ -30,11 +31,12 @@ setup(
     version=version["__version__"],
     author="Danila Vershinin",
     author_email="info@getpagespeed.com",
-    url="https://github.com/dvershinin/cloudflareddns",
-    description="A CLI tool to use Cloudflare as a DDNS provider",
+    url="https://github.com/dvershinin/fds",
+    description="The go-to FirewallD CLI app",
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=find_packages(exclude=["tests"]),
+    package_data={'fds': ['data/*.json']},
     zip_safe=False,
     license="BSD",
     install_requires=install_requires,

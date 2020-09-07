@@ -1,20 +1,59 @@
-script for firewalld, helper to easily:
+# fds
+ 
+The go-to FirewallD CLI app.
+
+### Why FirewallD doesn't suck?
+ 
+ Firewall management is often a task that you do once at the time of setting up a server.
+ FirewallD is so great with the concepts of zones, source, support for IP sets.
+ 
+ But if you're maintaining a server like a PRO, you are monitoring logs, and blocking malicious users as they come.
+ 
+ Blocking and managing blocked IP addresses, is where, unfortunately, `firewall-cmd` is very awkward to use.
+ And if you're using Cloudflare firewall, you also want to propagate your blocked IP addresses there for even better protection.
+ 
+`fds` is the CLI wrapper for FirewallD/Cloudflare, that you'll love to use any day.
+
+It makes the task of managing your FirewallD easy and human-friendly :-)
+
+## BETA !!! HIGHLY NON-FUNCTIONAL
+
+## Goals 
+
+The `fds` is utility program for users of FirewallD. It is a helper to easily perform day-to-day 
+firewall tasks:
 
 * block countries
-* block ranges in cloudflare firewall (kinda helper firewall for cloudflare) 
+* block ranges in the Cloudflare firewall (kinda helper firewall for cloudflare) 
 and works with both firewalld and cloudflare, e.g. http://jodies.de/ipcalc?host=114.119.128.0&mask1=18&mask2=24
 * declare a CDN of servers and push blocking commands across those server from one place (ansible-like), useful for dynamic blocking
 from the central server (honeypot)
 * drop outbound connections (shortcut to https://cogitantium.blogspot.com/2017/06/how-to-drop-outbound-connections-with.html) 
 
+# Synopsys
 
-sudo yum -y install python3-firewall
+### Works
 
-For use with Python 3:
+### Ban a single IP
 
-  python3-dbus
-  python3-slip-dbus
-  python3-decorator
-  python3-gobject
-  python3-nftables (nftables >= 0.9.3)
-  
+```bash
+fds block 1.2.3.4
+```
+
+This blocks IP address in a proper(c) fashion by ensuring that the IP is in a set named `networkblock4`,
+that the set is a source to FirewallD's `drop` zone. Using IP sets is the corner stone of consistent
+firewall management!
+
+### Planned
+
+## Installation on CentOS/RHEL 7, 8
+
+Packaged installation is currently unavailable. 
+
+See contributing guide for dev setup.
+
+## Files
+
+* /etc/fds.conf
+* /var/lib/fds: zone files, info on what is currently blocked (state data)
+* /var/cache/fds: cachecontrol cache
