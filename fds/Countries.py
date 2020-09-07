@@ -1,6 +1,7 @@
 import json
 import os
 
+from six import add_metaclass
 from .Country import Country
 
 
@@ -14,7 +15,8 @@ class Singleton(type):
         return cls._instances[cls]
 
 
-class Countries(metaclass=Singleton):
+@add_metaclass(Singleton)
+class Countries(object):
 
     def __init__(self):
         countries_data_file = os.path.join(
