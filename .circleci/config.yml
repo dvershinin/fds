@@ -1,0 +1,91 @@
+version: 2
+
+defaults: &defaults
+    working_directory: /sources # directory where steps will run
+    environment:
+      RPMLINT: 1
+    steps: # a set of executable commands
+      - checkout # special step to check out source code to working directory
+      - run:
+          name: "Run the build itself: this will do rpmlint and check RPMs existence among other things."
+          command: ./utils/version-from-tag.sh && build
+      - persist_to_workspace:
+          root: /output
+          paths:
+            - "*.rpm"
+deploy: &deploy
+  docker:
+    - image: kroniak/ssh-client
+  working_directory: /output
+  steps:
+    - attach_workspace:
+        at: /output
+    - add_ssh_keys:
+        fingerprints:
+          - "8c:a4:dd:2c:47:4c:63:aa:90:0b:e0:d6:15:be:87:82"
+    - run:
+        name: "Ensure project specific upload directory to avoid deploy collisions"
+        command: >
+          ssh -o StrictHostKeyChecking=no
+          $GPS_BUILD_USER@$GPS_BUILD_SERVER
+          "mkdir -p ~/incoming/$CIRCLE_PROJECT_REPONAME/$DISTRO"
+    - run:
+        name: "Deploy all RPMs to GetPageSpeed repo."
+        command: >
+          scp -o StrictHostKeyChecking=no -q -r *.rpm
+          $GPS_BUILD_USER@$GPS_BUILD_SERVER:~/incoming/$CIRCLE_PROJECT_REPONAME/$DISTRO/
+    - run:
+        name: "Trigger Deploy Hook."
+        command: >
+          ssh -o StrictHostKeyChecking=no -q
+          $GPS_BUILD_USER@$GPS_BUILD_SERVER
+          "nohup ~/scripts/incoming.sh $CIRCLE_PROJECT_REPONAME/$DISTRO > ~/incoming/$CIRCLE_PROJECT_REPONAME/$DISTRO/process.log 2>&1&"
+jobs: # a collection of steps
+  el7:
+    docker:
+      - image: getpagespeed/rpmbuilder:centos-7
+    <<: *defaults
+  el8:
+    docker:
+      - image: getpagespeed/rpmbuilder:centos-8
+    <<: *defaults
+  deploy-el7:
+    <<: *deploy
+    environment:
+      DISTRO: el7
+  deploy-el8:
+    <<: *deploy
+    environment:
+      DISTRO: el8
+workflows:
+  version: 2
+  build-deploy-el7:
+    jobs:
+      - el7:
+          filters:  # required since `deploy` has tag filters AND requires `build`
+            tags:
+              only: /.*/
+      - deploy-el7:
+          context: org-global
+          requires:
+            - el7
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+  build-deploy-el8:
+    jobs:
+      - el8:
+          filters:  # required since `deploy` has tag filters AND requires `build`
+            tags:
+              only: /.*/
+      - deploy-el8:
+          context: org-global
+          requires:
+            - el8
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/

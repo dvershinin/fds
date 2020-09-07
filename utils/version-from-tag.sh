@@ -4,6 +4,7 @@
 set -x
 
 TAG=$(git describe --exact-match --tags $(git log -n1 --pretty='%h') 2>/dev/null ||:)
+PKG=$(basename *.spec .spec)
 
 # If tag looks like a semantic version, then replace version in the spec file
 if $(echo ${TAG} | grep --silent --perl-regexp '^v?\d+\.\d+\.\d+$'); then
@@ -15,12 +16,13 @@ if $(echo ${TAG} | grep --silent --perl-regexp '^v?\d+\.\d+\.\d+$'); then
         sed -i "s@Version:.*@Version:        ${VER}@" $1
     fi
 else
-    echo "Not a tag checkout"
+    echo "Not a tag checkout. Create github-like archive from current checkout, for rpmbuild to pick that instead of v0.0.1 tag in spec"
+    # by our convention, the spec file in git has Version: 0, so it will extract to <name>-0
+    BUILD_NAME="${PKG}-0"
+    mkdir "/tmp/${BUILD_NAME}"
+    cp -aRp ./* "/tmp/${BUILD_NAME}/"
+    pushd /tmp || exit
+    tar -czvf ./v0.tar.gz "./{BUILD_NAME}"
+    popd || exit
+    mv /tmp/v0.tar.gz ./
 fi
-
-# compile :)
-yum -y install shc
-# generate executable that will refuse to launch in 3 months from now
-shc -v -r -e $(date --date='+6 month' +%d/%m/%Y) -m "Please upgrade clearmage2 package from the GetPageSpeed.com/redhat repository" -f clearmage2.sh
-# replace the script with compiled one
-mv -f clearmage2.sh.x clearmage2.sh
