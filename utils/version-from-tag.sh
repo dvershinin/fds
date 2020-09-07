@@ -22,7 +22,7 @@ else
     mkdir "/tmp/${BUILD_NAME}"
     cp -aRp ./* "/tmp/${BUILD_NAME}/"
     pushd /tmp || exit
-    tar -czvf ./v0.tar.gz "./{BUILD_NAME}"
+    tar -czvf ./v0.tar.gz "./${BUILD_NAME}"
     popd || exit
     mv /tmp/v0.tar.gz ./
 fi
