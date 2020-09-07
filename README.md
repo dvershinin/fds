@@ -7,7 +7,7 @@ The go-to FirewallD CLI app.
  Firewall management is often a task that you do once at the time of setting up a server.
  FirewallD is so great with the concepts of zones, source, support for IP sets.
  
- But if you're maintaining a server like a PRO, you are monitoring logs, and blocking malicious users as they come.
+ But if you're maintaining a server like a PRO, you are monitoring logs, and blocking malicious users as they come, on a *regular basis*.
  
  Blocking and managing blocked IP addresses, is where, unfortunately, `firewall-cmd` is very awkward to use.
  And if you're using Cloudflare firewall, you also want to propagate your blocked IP addresses there for even better protection.
@@ -40,17 +40,24 @@ from the central server (honeypot)
 fds block 1.2.3.4
 ```
 
-This blocks IP address in a proper(c) fashion by ensuring that the IP is in a set named `networkblock4`,
+This blocks IP address in a proper(©) fashion by ensuring that the IP is in a set named `networkblock4`,
 that the set is a source to FirewallD's `drop` zone. Using IP sets is the corner stone of consistent
 firewall management!
 
 ### Planned
 
+```bash
+fds block <Country Name>
+```
+
 ## Installation on CentOS/RHEL 7, 8
 
-Packaged installation is currently unavailable. 
+```bash
+sudo yum -y install https://extras.getpagespeed.com/release-latest.rpm
+sudo yum -y install fds
+```
 
-See contributing guide for dev setup.
+See contributing guide for development setup (if not using packages).
 
 ## Files
 
