@@ -53,7 +53,8 @@ Requires:       python%{python3_pkgversion}-%{name} = %{version}-%{release}
 %endif
 
 %description
-fds is the CLI wrapper for FirewallD/Cloudflare, that you'll love to use any day.
+fds is the CLI wrapper for FirewallD/Cloudflare, that you'll love
+to use any day.
 
 %if %{with python2}
 %package -n     python2-%{name}
@@ -141,5 +142,5 @@ rm -rf %{buildroot}%{python2_sitelib}/tests
 
 
 %changelog
-* Tue Sep 08 2020 Danila Vershinin <info@getpagespeed.com> 0-1
+* Mon Sep 07 2020 Danila Vershinin <info@getpagespeed.com> 0-1
 - release 0
