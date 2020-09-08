@@ -1,8 +1,8 @@
 # fds
  
-The go-to FirewallD CLI app.
+The go-to **F**irewallD CLI app that **d**oesn't **s**uck.
 
-### Why FirewallD doesn't suck?
+### What is `fds`?
  
  Firewall management is often a task that you do once at the time of setting up a server.
  FirewallD is so great with the concepts of zones, source, support for IP sets.
@@ -12,7 +12,9 @@ The go-to FirewallD CLI app.
  Blocking and managing blocked IP addresses, is where, unfortunately, `firewall-cmd` is very awkward to use.
  And if you're using Cloudflare firewall, you also want to propagate your blocked IP addresses there for even better protection.
  
-`fds` is the CLI wrapper for FirewallD/Cloudflare, that you'll love to use any day.
+`fds` is the CLI client for FirewallD/Cloudflare, that you'll love to use any day.
+
+It is an alternative (to `firewall-cmd`) client for FirewallD.
 
 It makes the task of managing your FirewallD easy and human-friendly :-)
 
@@ -61,6 +63,6 @@ See contributing guide for development setup (if not using packages).
 
 ## Files
 
-* /etc/fds.conf
-* /var/lib/fds: zone files, info on what is currently blocked (state data)
+* /etc/fds.conf (info on currently blocked countries or otherwise small data sets suitable for a single config file)
+* /var/lib/fds: zone files, (state data) + (info on what is currently blocked) (???)
 * /var/cache/fds: cachecontrol cache

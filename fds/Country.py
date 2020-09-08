@@ -21,7 +21,7 @@ class Country:
 
     def getNation(self):
         nationOverrides = {
-            'Philippines': 'Filipina',
+            'Philippines': 'Filipino',
         }
         if self.name in nationOverrides.keys():
             return nationOverrides[self.name]
@@ -30,3 +30,6 @@ class Country:
             return self.demonym
 
         return self.name
+
+    def get_set_name(self, family=4):
+        return 'fds-{}-{}'.format(self.code.lower(), family)

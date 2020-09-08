@@ -49,6 +49,22 @@ class FirewallWrapper:
         self.config = self.fw.config()
 
 
+    def get_create_set(self, name, family='inet'):
+        if name in self.config.getIPSetNames():
+            return self.config.getIPSetByName(
+                name
+            )
+        settings = FirewallClientIPSetSettings()
+        settings.setType('hash:net')
+        settings.setOptions({
+            'maxelem': '1000000',
+            'family': family,
+            'hashsize': '4096'
+        })
+        return self.config.addIPSet(
+            name, settings
+        )
+
     def get_block_ipset4(self):
         if FirewallWrapper.NETWORKBLOCK_IPSET4 in self.config.getIPSetNames():
             return self.config.getIPSetByName(
@@ -90,15 +106,31 @@ class FirewallWrapper:
             return self.get_block_ipset6()
         return None
 
+    @do_maybe_already_enabled
+    def ensure_entry_in_ipset(self, ipset, entry):
+        return ipset.addEntry(str(entry))
+
 
     @do_maybe_already_enabled
     def ensure_block_ipset_in_drop_zone(self, ipset):
         # ensure that the block ipset is in drop zone:
         drop_zone = self.config.getZoneByName('drop')
-        self.config.getIPSetNames
+        # self.config.getIPSetNames
         return drop_zone.addSource('ipset:{}'.format(
             ipset.get_property('name')
         ))
+
+    @do_maybe_already_enabled
+    def block(self, ip):
+        block_ipset = self.get_block_ipset_for_ip(ip)
+        if not block_ipset:
+            # TODO err: unsupported protocol
+            raise Exception('Unsupported protocol')
+        self.ensure_block_ipset_in_drop_zone(block_ipset)
+        log.info('Adding IP address {} to block set {}'.format(ip, block_ipset.get_property('name')))
+        block_ipset.addEntry(str(ip))
+        log.info('Reloading FirewallD to apply permanent configuration')
+        self.fw.reload()
 
 
     @do_maybe_already_enabled

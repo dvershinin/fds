@@ -31,15 +31,23 @@ BuildArch:      noarch
 %if %{with python2}
 BuildRequires:  python2-devel
 BuildRequires:  python2-six
+BuildRequires:  python-netaddr
+BuildRequires:  python2-tqdm
+# will bring in msgpack and lockfile dependencies:
+Requires:       python2-CacheControl
 # For tests
 BuildRequires:  python2-pytest
 %endif
 
 %if %{with python3}
 BuildRequires:  python%{python3_pkgversion}-devel
+BuildRequires:  python%{python3_pkgversion}-six
+BuildRequires:  python%{python3_pkgversion}-netaddr
+BuildRequires:  python%{python3_pkgversion}-tqdm
+# will bring in msgpack and lockfile dependencies:
+Requires:       python%{python3_pkgversion}-CacheControl
 # For tests
 BuildRequires:  python%{python3_pkgversion}-pytest
-BuildRequires:  python%{python3_pkgversion}-six
 %endif
 
 # For generation of man page
@@ -61,6 +69,10 @@ to use any day.
 Summary:        Python 2 module for %{name}
 BuildArch:      noarch
 Requires:       python2-six
+Requires:       python-netaddr
+Requires:       python2-tqdm
+# will bring in msgpack and lockfile dependencies:
+Requires:       python2-CacheControl
 %{?python_provide:%python_provide python2-%{name}}
  
 %description -n python2-%{name}
@@ -73,6 +85,10 @@ Python module for %{name}
 Summary:        Python 3 module for %{name}
 BuildArch:      noarch
 Requires:       python%{python3_pkgversion}-six
+Requires:       python%{python3_pkgversion}-netaddr
+Requires:       python%{python3_pkgversion}-tqdm
+# will bring in msgpack and lockfile dependencies:
+Requires:       python%{python3_pkgversion}-CacheControl
 %{?python_provide:%python_provide python%{python3_pkgversion}-%{name}}
 
 %description -n python%{python3_pkgversion}-%{name}
@@ -116,13 +132,25 @@ rm -rf %{buildroot}%{python2_sitelib}/tests
 
 %{__install} -Dpm0644 %{name}.1 \
     $RPM_BUILD_ROOT%{_mandir}/man1/%{name}.1
- 
+
+%{__mkdir} -p $RPM_BUILD_ROOT%{_localstatedir}/cache/%{name}
+%{__mkdir} -p $RPM_BUILD_ROOT/var/lib/%{name}
+
+
+%postun
+if [ $1 -eq 0 ]; then
+    %{__rm} -rf %{_localstatedir}/cache/%{name}
+fi
+
  
 %files
 %license LICENSE
 %doc README.md
 %{_bindir}/%{name}
 %{_mandir}/man1/*.1*
+%attr(0750,root,root) %dir %{_localstatedir}/cache/%{name}
+%attr(0755, root, root)   %dir /var/lib/%{name}
+%attr(0644, root, root) %verify(not md5 size mtime) %ghost %config(missingok,noreplace) /var/lib/%{name}/*
 
 
 %if %{with python2}
@@ -142,5 +170,5 @@ rm -rf %{buildroot}%{python2_sitelib}/tests
 
 
 %changelog
-* Mon Sep 07 2020 Danila Vershinin <info@getpagespeed.com> 0-1
-- release 0
+* Thu Aug 15 2019 Danila Vershinin <info@getpagespeed.com>
+- changelogs are not maintained

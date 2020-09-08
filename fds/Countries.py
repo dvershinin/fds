@@ -52,4 +52,5 @@ class Countries(object):
         if name in self.countries:
             return self.countries[name]
         else:
-            return Country(name)
+            return None
+

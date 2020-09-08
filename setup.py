@@ -13,7 +13,8 @@ import os
 install_requires = [
     'six',
     'netaddr',
-    'cachecontrol'
+    'cachecontrol',
+    'tqdm'
 ]
 tests_requires = ["pytest", "flake8", "faker"]
 

@@ -5,6 +5,8 @@ import argparse
 import ipaddress
 import logging as log  # for verbose output
 
+from tqdm import tqdm
+
 from .FirewallWrapper import FirewallWrapper
 from .WebClient import WebClient
 
@@ -25,12 +27,13 @@ def action_block(ip):
         countries = Countries()
         c = countries.getByName(ip)
 
+        if not c:
+            log.error('{} does not look like a correct IP or a country name'.format(ip))
+            return False
 
+        log.info('Blocking {} {}'.format(c.name, c.getFlag()))
+        # print("\N{grinning face}")
 
-        print(c)
-        print(c.getFlag())
-        print("\N{grinning face}")
-        print(c.code)
         # TODO get aggregated zone file, save as cache,
         # do diff to know which stuff was changed and add/remove blocks
         # https://docs.python.org/2/library/difflib.html
@@ -39,9 +42,21 @@ def action_block(ip):
         # TODO conditional get test on getpagespeed.com
         w = WebClient()
         country_networks = w.get_country_networks(country=c)
-        for network in country_networks:
-            print(network)
+
+        ipset = fw.get_create_set(c.get_set_name())
+        for network in tqdm(country_networks, unit='network',
+                            desc='Adding {} networks to IPSet {}'.format(c.getNation(), c.get_set_name())):
+            log.debug(network)
+            fw.ensure_entry_in_ipset(ipset=ipset, entry=network)
+
         # TODO retry, timeout
+        # this action re-adds all entries entirely
+        # there should be "fds-<country.code>-<family>" ip set
+        fw.ensure_block_ipset_in_drop_zone(ipset)
+        log.info('Reloading FirewallD...')
+        fw.fw.reload()
+        log.info('Done!')
+        # while cron will do "sync" behavior"
 
 
 
