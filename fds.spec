@@ -150,7 +150,7 @@ fi
 %{_mandir}/man1/*.1*
 %attr(0750,root,root) %dir %{_localstatedir}/cache/%{name}
 %attr(0755, root, root)   %dir /var/lib/%{name}
-%attr(0644, root, root) %verify(not md5 size mtime) %ghost %config(missingok,noreplace) /var/lib/%{name}/*
+#%%attr(0644, root, root) %%verify(not md5 size mtime) %%ghost %%config(missingok,noreplace) /var/lib/%%{name}/*
 
 
 %if %{with python2}
