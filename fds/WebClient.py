@@ -73,7 +73,7 @@ class WebClient:
         log.debug('Downloading {}'.format(url))
         content = self.download_file(
             url,
-            display_name='{} {} block list'.format(country.getNation(), country.getFlag()),
+            display_name='{} networks list'.format(country.getNation()),
             local_filename=get_country_zone_filename(country),
             return_type='contents'
         )

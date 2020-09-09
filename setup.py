@@ -14,7 +14,8 @@ install_requires = [
     'six',
     'netaddr',
     'cachecontrol',
-    'tqdm'
+    'tqdm',
+    'cloudflare>=2.3.1'
 ]
 tests_requires = ["pytest", "flake8", "faker"]
 

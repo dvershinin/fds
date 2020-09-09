@@ -1,64 +1,25 @@
-import os
-
-import six
 import argparse
 import ipaddress
 import logging as log  # for verbose output
+import os
 
-from tqdm import tqdm
+import six
 
 from .FirewallWrapper import FirewallWrapper
-from .WebClient import WebClient
+
 
 def is_root():
     return os.geteuid() == 0
 
 
-def action_block(ip):
+def action_block(ip_or_country_name):
     fw = FirewallWrapper()
-    ip = six.text_type(ip)
+    ip_or_country_name = six.text_type(ip_or_country_name)
     try:
-        ip = ipaddress.ip_address(ip)
-        fw.block(ip)
+        ip_or_country_name = ipaddress.ip_address(ip_or_country_name)
+        fw.block_ip(ip_or_country_name)
     except ValueError:
-        # print('address/netmask is invalid: %s' % sys.argv[1])
-        # parse out as a country
-        from .Countries import Countries
-        countries = Countries()
-        c = countries.getByName(ip)
-
-        if not c:
-            log.error('{} does not look like a correct IP or a country name'.format(ip))
-            return False
-
-        log.info('Blocking {} {}'.format(c.name, c.getFlag()))
-        # print("\N{grinning face}")
-
-        # TODO get aggregated zone file, save as cache,
-        # do diff to know which stuff was changed and add/remove blocks
-        # https://docs.python.org/2/library/difflib.html
-        # TODO persist info on which countries were blocked (in the config file)
-        # then sync zones via "fds cron"
-        # TODO conditional get test on getpagespeed.com
-        w = WebClient()
-        country_networks = w.get_country_networks(country=c)
-
-        ipset = fw.get_create_set(c.get_set_name())
-        for network in tqdm(country_networks, unit='network',
-                            desc='Adding {} networks to IPSet {}'.format(c.getNation(), c.get_set_name())):
-            log.debug(network)
-            fw.ensure_entry_in_ipset(ipset=ipset, entry=network)
-
-        # TODO retry, timeout
-        # this action re-adds all entries entirely
-        # there should be "fds-<country.code>-<family>" ip set
-        fw.ensure_block_ipset_in_drop_zone(ipset)
-        log.info('Reloading FirewallD...')
-        fw.fw.reload()
-        log.info('Done!')
-        # while cron will do "sync" behavior"
-
-
+        fw.block_country(ip_or_country_name)
 
 
 def action_reset():

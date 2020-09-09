@@ -1,8 +1,11 @@
+# from netaddr import IPAddress
+import logging as log  # for verbose output
+
 import dbus
 from firewall.client import FirewallClient
 from firewall.client import FirewallClientIPSetSettings
-# from netaddr import IPAddress
-import logging as log  # for verbose output
+
+from fds.WebClient import WebClient
 
 
 def do_maybe_already_enabled(func):
@@ -107,6 +110,10 @@ class FirewallWrapper:
         return None
 
     @do_maybe_already_enabled
+    def ensure_ipset_entries(self, ipset, entries):
+        return ipset.setEntries(entries)
+
+    @do_maybe_already_enabled
     def ensure_entry_in_ipset(self, ipset, entry):
         return ipset.addEntry(str(entry))
 
@@ -134,7 +141,7 @@ class FirewallWrapper:
 
 
     @do_maybe_already_enabled
-    def block(self, ip):
+    def block_ip(self, ip):
         block_ipset = self.get_block_ipset_for_ip(ip)
         if not block_ipset:
             # TODO err: unsupported protocol
@@ -153,28 +160,83 @@ class FirewallWrapper:
             ipset_name
         ))
 
+    def clear_ipset_by_name(self, ipset_name):
+        try:
+            # does not work: ipset.setEntries([])
+            self.fw.setEntries(ipset_name, [])
+        except dbus.exceptions.DBusException:
+            pass
 
-    def reset(self):
+    def destroy_ipset_by_name(self, name):
+        log.info('Destroying IPSet {}'.format(name))
         # firewalld up to this commit
         # https://github.com/firewalld/firewalld/commit/f5ed30ce71755155493e78c13fd9036be8f70fc4
-        # does not delete runtime ipsets, so we can only clear them? :(
-        try:
-            self.fw.setEntries(self.NETWORKBLOCK_IPSET4, [])
-        except dbus.exceptions.DBusException:
-            pass
-        try:
-            self.fw.setEntries(self.NETWORKBLOCK_IPSET6, [])
-        except dbus.exceptions.DBusException:
-            pass
+        # does not delete runtime ipsets, so we have to clear them :(
+        # they are not removed from runtime as still reported by ipset -L
+        # although they *are* removed from FirewallD
+        if name not in self.fw.getIPSets():
+            return
 
-        block_ipset4 = self.get_block_ipset4()
-        block_ipset4.setEntries([])
-        block_ipset4.remove()
-        block_ipset6 = self.get_block_ipset6()
-        block_ipset6.remove()
+        ipset = self.config.getIPSetByName(name)
+        if ipset:
+            self.clear_ipset_by_name(name)
+            ipset.remove()
 
+    def reset(self):
         drop_zone = self.config.getZoneByName('drop')
+
         self.remove_ipset_from_zone(drop_zone, self.NETWORKBLOCK_IPSET4)
+        self.destroy_ipset_by_name(self.NETWORKBLOCK_IPSET4)
+
         self.remove_ipset_from_zone(drop_zone, self.NETWORKBLOCK_IPSET6)
+        self.destroy_ipset_by_name(self.NETWORKBLOCK_IPSET6)
+
+        all_ipsets = self.fw.getIPSets()
+        # get any ipsets prefixed with "fds-"
+        for ipset_name in all_ipsets:
+            self.remove_ipset_from_zone(drop_zone, ipset_name)
+            self.destroy_ipset_by_name(ipset_name)
 
         self.fw.reload()
+
+
+    def block_country(self, ip_or_country_name):
+        # print('address/netmask is invalid: %s' % sys.argv[1])
+        # parse out as a country
+        from .Countries import Countries
+        countries = Countries()
+        c = countries.getByName(ip_or_country_name)
+
+        if not c:
+            log.error('{} does not look like a correct IP or a country name'.format(ip_or_country_name))
+            return False
+
+        log.info('Blocking {} {}'.format(c.name, c.getFlag()))
+        # print("\N{grinning face}")
+
+        # TODO get aggregated zone file, save as cache,
+        # do diff to know which stuff was changed and add/remove blocks
+        # https://docs.python.org/2/library/difflib.html
+        # TODO persist info on which countries were blocked (in the config file)
+        # then sync zones via "fds cron"
+        # TODO conditional get test on getpagespeed.com
+        w = WebClient()
+        country_networks = w.get_country_networks(country=c)
+
+        ipset = self.get_create_set(c.get_set_name())
+        self.ensure_ipset_entries(ipset, country_networks)
+
+        # this is slow. setEntries is a lot faster
+        # for network in tqdm(country_networks, unit='network',
+        #                     desc='Adding {} networks to IPSet {}'.format(c.getNation(), c.get_set_name())):
+        #     log.debug(network)
+        #     fw.ensure_entry_in_ipset(ipset=ipset, entry=network)
+
+        # TODO retry, timeout
+        # this action re-adds all entries entirely
+        # there should be "fds-<country.code>-<family>" ip set
+        self.ensure_block_ipset_in_drop_zone(ipset)
+        log.info('Reloading FirewallD...')
+        self.fw.reload()
+        log.info('Done!')
+        # while cron will do "sync" behavior"

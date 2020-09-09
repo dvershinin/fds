@@ -14,6 +14,7 @@ Complete walkthrough:
 * Create a virtualenv with system's Python version and access to system-wide packages:   
 `sudo virtualenv  --system-site-packages /opt/fds/venv`
 
+
 sudo mkdir -p /var/cache/fds /var/lib/fds
 
 
