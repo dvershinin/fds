@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 # from netaddr import IPAddress
 import logging as log  # for verbose output
 

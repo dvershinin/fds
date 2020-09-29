@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import requests
 from cachecontrol import CacheControl
 from cachecontrol.caches import FileCache
@@ -15,6 +17,21 @@ def get_country_ipblocks_url(country):
 
 def get_country_zone_filename(country):
     return '/var/lib/fds/{}.zone'.format(country.code.lower())
+
+
+# monkey patching older requests library's response class so it can use context manager
+# https://github.com/psf/requests/issues/4136
+def requests_response_patched_enter(self):
+    return self
+
+
+def requests_response_patched_exit(self, *args):
+    self.close()
+
+
+if not hasattr(requests.Response, '__exit__'):
+    requests.Response.__enter__ = requests_response_patched_enter
+    requests.Response.__exit__ = requests_response_patched_exit
 
 
 class WebClient:

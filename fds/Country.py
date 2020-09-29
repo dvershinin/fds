@@ -1,3 +1,7 @@
+from __future__ import unicode_literals
+from builtins import chr
+
+
 class Country:
 
     OFFSET = 127462 - ord('A')
