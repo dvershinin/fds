@@ -5,7 +5,7 @@ import dbus
 from firewall.client import FirewallClient
 from firewall.client import FirewallClientIPSetSettings
 
-from fds.WebClient import WebClient
+from .WebClient import WebClient
 
 
 def do_maybe_already_enabled(func):

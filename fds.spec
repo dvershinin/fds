@@ -70,6 +70,8 @@ to use any day.
 %package -n     python2-%{name}
 Summary:        Python 2 module for %{name}
 BuildArch:      noarch
+Requires:       python2-setuptools
+Requires:       python2-firewall
 Requires:       python2-six
 Requires:       python-netaddr
 Requires:       python2-tqdm
@@ -87,6 +89,8 @@ Python module for %{name}
 %package -n     python%{python3_pkgversion}-%{name}
 Summary:        Python 3 module for %{name}
 BuildArch:      noarch
+Requires:       python%{python3_pkgversion}-setuptools
+Requires:       python%{python3_pkgversion}-firewall
 Requires:       python%{python3_pkgversion}-six
 Requires:       python%{python3_pkgversion}-netaddr
 Requires:       python%{python3_pkgversion}-tqdm
