@@ -10,7 +10,8 @@ from .__about__ import __version__
 
 
 def get_country_ipblocks_url(country):
-    return 'https://www.ipdeny.com/ipblocks/data/aggregated/{}-aggregated.zone'.format(
+    # we cannot use https:// reliably here because their cert has chain issues/expired!
+    return 'http://www.ipdeny.com/ipblocks/data/aggregated/{}-aggregated.zone'.format(
         country.code.lower()
     )
 
