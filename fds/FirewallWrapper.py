@@ -44,6 +44,23 @@ def do_maybe_not_enabled(func):
     return func_wrapper
 
 
+def do_maybe_invalid_ipset(func):
+    def func_wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except dbus.exceptions.DBusException as e:
+            if 'org.fedoraproject.FirewallD1.Exception' == e.get_dbus_name() \
+                    and e.get_dbus_message().startswith('INVALID_IPSET:'):
+                log.debug(e.get_dbus_message())
+                return True
+            else:
+                # re-raise :)
+                raise e
+
+
+    return func_wrapper
+
+
 class FirewallWrapper:
     NETWORKBLOCK_IPSET4 = 'networkblock4'
     NETWORKBLOCK_IPSET6 = 'networkblock6'
@@ -162,6 +179,7 @@ class FirewallWrapper:
             ipset_name
         ))
 
+    @do_maybe_invalid_ipset
     def clear_ipset_by_name(self, ipset_name):
         try:
             # does not work: ipset.setEntries([])
@@ -169,6 +187,7 @@ class FirewallWrapper:
         except dbus.exceptions.DBusException:
             pass
 
+    @do_maybe_invalid_ipset
     def destroy_ipset_by_name(self, name):
         log.info('Destroying IPSet {}'.format(name))
         # firewalld up to this commit
@@ -242,3 +261,30 @@ class FirewallWrapper:
         self.fw.reload()
         log.info('Done!')
         # while cron will do "sync" behavior"
+
+
+    def unblock_country(self, ip_or_country_name):
+        # print('address/netmask is invalid: %s' % sys.argv[1])
+        # parse out as a country
+        from .Countries import Countries
+        countries = Countries()
+        c = countries.getByName(ip_or_country_name)
+
+        if not c:
+            log.error('{} does not look like a correct IP or a country name'.format(ip_or_country_name))
+            return False
+
+        drop_zone = self.config.getZoneByName('drop')
+
+        log.info('Unblocking {} {}'.format(c.name, c.getFlag()))
+
+        self.remove_ipset_from_zone(drop_zone, c.get_set_name())
+        self.destroy_ipset_by_name(c.get_set_name())
+        log.info('Reloading FirewallD...')
+        self.fw.reload()
+        log.info('Done!')
+        # while cron will do "sync" behavior"
+
+
+    def unblock_ip(self, ip_or_country_name):
+        pass

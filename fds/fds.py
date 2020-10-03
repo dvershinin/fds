@@ -18,10 +18,20 @@ def action_block(ip_or_country_name):
     fw = FirewallWrapper()
     ip_or_country_name = six.text_type(ip_or_country_name)
     try:
-        ip_or_country_name = ipaddress.ip_address(ip_or_country_name)
+        ip_or_country_name = ipaddress.ip_network(ip_or_country_name)
         fw.block_ip(ip_or_country_name)
     except ValueError:
         fw.block_country(ip_or_country_name)
+
+
+def action_unblock(ip_or_country_name):
+    fw = FirewallWrapper()
+    ip_or_country_name = six.text_type(ip_or_country_name)
+    try:
+        ip_or_country_name = ipaddress.ip_network(ip_or_country_name)
+        fw.unblock_ip(ip_or_country_name)
+    except ValueError:
+        fw.unblock_country(ip_or_country_name)
 
 
 def action_reset():
@@ -33,7 +43,7 @@ def main():
     parser = argparse.ArgumentParser(description='Convenient FirewallD wrapper.',
                                      prog='fds')
     parser.add_argument('action', nargs='?', default='block',
-                        choices=['block', 'reset'],
+                        choices=['block', 'unblock', 'reset'],
                         help='Special action to run, e.g. block')
     parser.add_argument('value', nargs='?', default=None, help='Action value')
     parser.add_argument('--verbose', dest='verbose', action='store_true')
@@ -48,6 +58,9 @@ def main():
 
     if args.action == 'block':
         return action_block(args.value)
+
+    if args.action == 'unblock':
+        return action_unblock(args.value)
 
     if args.action == 'reset':
         return action_reset()
