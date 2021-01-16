@@ -52,7 +52,32 @@ fds block <Country Name>
 fds block China
 ```
 
-## Reset bans
+You can list all country names available for blocking by runing:
+
+```bash
+fds list countries
+``` 
+
+## List all blocked networks and countries
+
+The following allows to easily see what is blocked: 
+
+```bash
+fds list blocked
+``` 
+
+## Unblock a country or IP/network
+
+Use `fds unblock ...` like the following:
+
+```fds
+fds unblock China
+fds unblock 1.2.3.4
+```
+
+## Reset all bans
+
+You can quickly remove all blocks (and by that, all IP sets associated with `fds`):
 
 ```bash
 fds reset
@@ -77,6 +102,6 @@ See contributing guide for development setup (if not using packages).
 
 ## Files
 
-* `/etc/fds.conf` (info on currently blocked countries or otherwise small data sets suitable for a single config file)
-* `/var/lib/fds`: zone files, (state data) + (info on what is currently blocked) (???)
+* not in use: `/etc/fds.conf` (info on currently blocked countries or otherwise small data sets suitable for a single config file)
+* not in use: `/var/lib/fds`: zone files, (state data) + (info on what is currently blocked) (???)
 * `/var/cache/fds`: cachecontrol cache

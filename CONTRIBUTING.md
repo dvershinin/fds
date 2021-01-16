@@ -27,3 +27,10 @@ danila ALL=(ALL) NOPASSWD: /opt/fds/venv/bin/python
 danila ALL=(ALL) NOPASSWD: /home/danila/Projects/fds/venv/bin/python
 
 Pycharm: ensure "Emulate terminal" in run configurations, in order not to be prompted for authentication.
+
+## Running an arbitrary command for testing
+
+As a regular user, in the git checkout:
+
+    ./utils/python-sudo.sh ./venv/bin/fds block 1.2.3.4
+

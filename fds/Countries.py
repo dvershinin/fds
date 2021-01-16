@@ -29,6 +29,8 @@ class Countries(object):
 
         # indexed by common name, storing actual Country class
         self.countries = {}
+        # index of two-letter codes to common name
+        self.names_by_code = {}
 
         with open(countries_data_file) as jsonFile:
             data = json.load(jsonFile)
@@ -36,6 +38,7 @@ class Countries(object):
                 commonName = c['name']['common']
                 country = Country(commonName, c)
                 self.countries[commonName] = country
+                self.names_by_code[c['cca2'].lower()] = commonName
 
 
     def getByName(self, name):
@@ -55,4 +58,8 @@ class Countries(object):
             return self.countries[name]
         else:
             return None
+
+    def print_all(self):
+        for c in self.countries:
+            print(c)
 

@@ -136,6 +136,9 @@ class FirewallWrapper:
     def ensure_entry_in_ipset(self, ipset, entry):
         return ipset.addEntry(str(entry))
 
+    @do_maybe_already_enabled
+    def ensure_entry_not_in_ipset(self, ipset, entry):
+        return ipset.removeEntry(str(entry))
 
     @do_maybe_already_enabled
     def ensure_block_ipset_in_drop_zone(self, ipset):
@@ -171,6 +174,13 @@ class FirewallWrapper:
         log.info('Reloading FirewallD to apply permanent configuration')
         self.fw.reload()
 
+    def get_blocked_ips4(self):
+        block_ipset4 = self.get_block_ipset4()
+        return block_ipset4.getEntries()
+
+    def get_blocked_ips6(self):
+        block_ipset6 = self.get_block_ipset6()
+        return block_ipset6.getEntries()
 
     @do_maybe_not_enabled
     def remove_ipset_from_zone(self, zone, ipset_name):
@@ -203,6 +213,19 @@ class FirewallWrapper:
             self.clear_ipset_by_name(name)
             ipset.remove()
 
+    def get_blocked_countries(self):
+        blocked_countries = []
+        all_ipsets = self.fw.getIPSets()
+        from .Countries import Countries
+        countries = Countries()
+        for ipset_name in all_ipsets:
+            if ipset_name.startswith('fds-'):
+                country_code = ipset_name.split('-')[1]
+                if country_code in countries.names_by_code:
+                    blocked_countries.append(countries.names_by_code[country_code])
+        return blocked_countries
+
+
     def reset(self):
         drop_zone = self.config.getZoneByName('drop')
 
@@ -215,8 +238,9 @@ class FirewallWrapper:
         all_ipsets = self.fw.getIPSets()
         # get any ipsets prefixed with "fds-"
         for ipset_name in all_ipsets:
-            self.remove_ipset_from_zone(drop_zone, ipset_name)
-            self.destroy_ipset_by_name(ipset_name)
+            if ipset_name.startswith('fds-'):
+                self.remove_ipset_from_zone(drop_zone, ipset_name)
+                self.destroy_ipset_by_name(ipset_name)
 
         self.fw.reload()
 
@@ -287,4 +311,15 @@ class FirewallWrapper:
 
 
     def unblock_ip(self, ip_or_country_name):
-        pass
+        block_ipset = self.get_block_ipset_for_ip(ip_or_country_name)
+        if not block_ipset:
+            # TODO err: unsupported protocol
+            raise Exception('Unsupported protocol')
+        log.info(
+            'Removing {} from block set {}'.format(
+                ip_or_country_name, block_ipset.get_property('name')
+            )
+        )
+        self.ensure_entry_not_in_ipset(block_ipset, ip_or_country_name)
+        log.info('Reloading FirewallD to apply permanent configuration')
+        self.fw.reload()
