@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.0.9] - 2021-02-20
+### Added
+* `fds block tor` allows to easily ban Tor users
+
 ## [0.0.8] - 2021-01-16
 ### Fixed
 * `reset` action no longer destroys all IP sets, only `fds` specific ones 
