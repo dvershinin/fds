@@ -30,10 +30,21 @@ It makes the task of managing your FirewallD easy and human-friendly.
 The `fds` is utility program for users of FirewallD. It is a helper to easily perform day-to-day 
 firewall tasks:
 
+* block users of Tor
 * block countries
 * block arbitrary IP addresses
 
 # Synopsys
+
+## Block Tor
+
+You can block all Tor exit nodes by running:
+
+```bash
+fds block tor
+```
+
+Note that since these addresses constantly change, you may want to run this command in a cron.
 
 ## Ban a single IP
 
