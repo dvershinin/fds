@@ -245,6 +245,25 @@ class FirewallWrapper:
         self.fw.reload()
 
 
+    def block_tor(self):
+        log.info('Blocking Tor exit nodes')
+        w = WebClient()
+        tor4_exits = w.get_tor_exits(family=4)
+        tor6_exits = w.get_tor_exits(family=6)
+
+        tor4_ipset = self.get_create_set('fds-tor-4')
+        self.ensure_ipset_entries(tor4_ipset, tor4_exits)
+
+        tor6_ipset = self.get_create_set('fds-tor-6', family='inet6')
+        self.ensure_ipset_entries(tor6_ipset, tor6_exits)
+
+        self.ensure_block_ipset_in_drop_zone(tor4_ipset)
+        self.ensure_block_ipset_in_drop_zone(tor6_ipset)
+        log.info('Reloading FirewallD...')
+        self.fw.reload()
+        log.info('Done!')
+        # while cron will do "sync" behavior"
+
     def block_country(self, ip_or_country_name):
         # print('address/netmask is invalid: %s' % sys.argv[1])
         # parse out as a country

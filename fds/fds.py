@@ -17,6 +17,8 @@ def is_root():
 
 def action_block(ip_or_country_name):
     fw = FirewallWrapper()
+    if 'tor' == ip_or_country_name:
+        return fw.block_tor()
     ip_or_country_name = six.text_type(ip_or_country_name)
     try:
         ip_or_country_name = ipaddress.ip_network(ip_or_country_name)

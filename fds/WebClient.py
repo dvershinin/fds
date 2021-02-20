@@ -96,3 +96,14 @@ class WebClient:
             return_type='contents'
         )
         return content.splitlines()
+
+    def get_tor_exits(self, family=4):
+        url = 'https://lists.fissionrelays.net/tor/exits-ipv{}.txt'.format(family)
+        log.debug('Downloading {}'.format(url))
+        content = self.download_file(
+            url,
+            display_name='Tor IPv{} exits list'.format(family),
+            local_filename='/var/lib/fds/tor-{}.zone'.format(family),
+            return_type='contents'
+        )
+        return content.splitlines()
