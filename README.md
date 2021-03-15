@@ -2,7 +2,7 @@
  
 The go-to **F**irewallD CLI app that **d**oesn't **s**uck.
 
-### What is `fds`?
+## What is `fds`?
  
 Firewall management is often a task that you do once at the time of setting up a server.
 But if you're maintaining a server like a PRO, you are monitoring logs, and blocking malicious users as they come, on a *regular basis*.
@@ -33,8 +33,6 @@ firewall tasks:
 * block users of Tor
 * block countries
 * block arbitrary IP addresses
-
-# Synopsys
 
 ## Block Tor
 

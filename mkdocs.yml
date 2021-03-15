@@ -1,0 +1,43 @@
+site_name: fds docs
+site_description: "Automatic documentation from sources, for fds."
+site_url:
+repo_url: https://github.com/dvershinin/fds
+theme:
+  name: "material"
+  palette:
+    scheme: slate
+    primary: teal
+    accent: purple
+  features:
+    - navigation.expand
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          setup_commands:
+            - import sys
+            - sys.path.append("docs")
+          selection:
+            new_path_syntax: yes
+      watch:
+        - fds
+nav:
+  - Overview: index.md
+  - Changelog: changelog.md
+  - License: license.md
+  - 'Blog': 'https://www.getpagespeed.com/posts'
+markdown_extensions:
+  - admonition
+  - markdown_include.include
+  - pymdownx.emoji
+  - pymdownx.magiclink
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - pymdownx.tasklist
+  - pymdownx.snippets:
+      check_paths: true
+  - toc:
+      permalink: "¤"
+extra:
+  generator: false

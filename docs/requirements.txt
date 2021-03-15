@@ -1,0 +1,8 @@
+# docs/requirements.txt
+mkdocs==1.1.2
+# theme:
+mkdocs-material
+# code documentation:
+mkdocstrings
+# markdown include:
+markdown-include
