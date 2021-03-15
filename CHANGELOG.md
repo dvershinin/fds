@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.0.10] - 2021-03-15
+### Added
+* `fds block` now has new option `--no-reload` to skip reloading FirewallD.
+ Useful when adding many blocks at once. 
+ 
 ## [0.0.9] - 2021-02-20
 ### Added
 * `fds block tor` allows to easily ban Tor users

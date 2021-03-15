@@ -15,16 +15,16 @@ def is_root():
     return os.geteuid() == 0
 
 
-def action_block(ip_or_country_name):
+def action_block(ip_or_country_name, reload=True):
     fw = FirewallWrapper()
     if 'tor' == ip_or_country_name:
-        return fw.block_tor()
+        return fw.block_tor(reload=reload)
     ip_or_country_name = six.text_type(ip_or_country_name)
     try:
         ip_or_country_name = ipaddress.ip_network(ip_or_country_name)
-        fw.block_ip(ip_or_country_name)
+        fw.block_ip(ip_or_country_name, reload=reload)
     except ValueError:
-        fw.block_country(ip_or_country_name)
+        fw.block_country(ip_or_country_name, reload=reload)
 
 
 def action_unblock(ip_or_country_name):
@@ -71,6 +71,8 @@ def main():
 
     parser_block = subparsers.add_parser('block', help='Block a network, IP, or a country')
     parser_block.add_argument('value', nargs='?', default=None, help='Action value')
+    parser_block.add_argument('--no-reload', '-nr', dest='reload', action='store_false',
+                              default=True, help='Skip reloading FirewallD')
 
     parser_unblock = subparsers.add_parser('unblock')
     parser_unblock.add_argument('value', nargs='?', default=None, help='Action value')
@@ -103,7 +105,7 @@ def main():
         log.basicConfig(format="%(message)s", level=log.INFO)
 
     if args.action == 'block':
-        return action_block(args.value)
+        return action_block(args.value, reload=args.reload)
 
     if args.action == 'unblock':
         return action_unblock(args.value)

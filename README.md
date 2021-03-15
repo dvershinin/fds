@@ -69,6 +69,25 @@ You can list all country names available for blocking by runing:
 fds list countries
 ``` 
 
+### `--no-reload` (`-nr`)
+
+Use this optional flag to prevent FirewallD from being reloaded.
+This is only useful when adding multiple blocks, as it ensure faster blocking:
+
+```bash
+fds block 1.2.3.4 --no-reload
+fds block 2.3.4.5 --no-reload
+fds block Country1 --no-reload
+...
+fds block Country2
+```
+
+In the above example, we block some IP addresses and a few countries.
+The last block operation will reload FirewallD and actually apply our ban.
+
+Alternatively, invoke all `fds block` with `--no-reload` option and invoke `firewall-cmd --reload`
+in the end.
+
 ## List all blocked networks and countries
 
 The following allows to easily see what is blocked: 

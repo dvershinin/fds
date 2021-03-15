@@ -163,7 +163,7 @@ class FirewallWrapper:
 
 
     @do_maybe_already_enabled
-    def block_ip(self, ip):
+    def block_ip(self, ip, reload=True):
         block_ipset = self.get_block_ipset_for_ip(ip)
         if not block_ipset:
             # TODO err: unsupported protocol
@@ -171,8 +171,9 @@ class FirewallWrapper:
         self.ensure_block_ipset_in_drop_zone(block_ipset)
         log.info('Adding IP address {} to block set {}'.format(ip, block_ipset.get_property('name')))
         block_ipset.addEntry(str(ip))
-        log.info('Reloading FirewallD to apply permanent configuration')
-        self.fw.reload()
+        if reload:
+            log.info('Reloading FirewallD to apply permanent configuration')
+            self.fw.reload()
 
     def get_blocked_ips4(self):
         block_ipset4 = self.get_block_ipset4()
@@ -245,7 +246,7 @@ class FirewallWrapper:
         self.fw.reload()
 
 
-    def block_tor(self):
+    def block_tor(self, reload=True):
         log.info('Blocking Tor exit nodes')
         w = WebClient()
         tor4_exits = w.get_tor_exits(family=4)
@@ -259,12 +260,13 @@ class FirewallWrapper:
 
         self.ensure_block_ipset_in_drop_zone(tor4_ipset)
         self.ensure_block_ipset_in_drop_zone(tor6_ipset)
-        log.info('Reloading FirewallD...')
-        self.fw.reload()
+        if reload:
+            log.info('Reloading FirewallD...')
+            self.fw.reload()
         log.info('Done!')
         # while cron will do "sync" behavior"
 
-    def block_country(self, ip_or_country_name):
+    def block_country(self, ip_or_country_name, reload=True):
         # print('address/netmask is invalid: %s' % sys.argv[1])
         # parse out as a country
         from .Countries import Countries
@@ -300,8 +302,9 @@ class FirewallWrapper:
         # this action re-adds all entries entirely
         # there should be "fds-<country.code>-<family>" ip set
         self.ensure_block_ipset_in_drop_zone(ipset)
-        log.info('Reloading FirewallD...')
-        self.fw.reload()
+        if reload:
+            log.info('Reloading FirewallD...')
+            self.fw.reload()
         log.info('Done!')
         # while cron will do "sync" behavior"
 
