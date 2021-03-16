@@ -25,6 +25,7 @@ Summary:        The go-to FirewallD CLI app
 License:        BSD
 URL:            https://github.com/dvershinin/fds
 Source0:        https://github.com/dvershinin/fds/archive/v%{version}.tar.gz
+Source1:        fds.cron
 
 BuildArch:      noarch
 
@@ -144,6 +145,8 @@ rm -rf %{buildroot}%{python2_sitelib}/tests
 %{__mkdir} -p $RPM_BUILD_ROOT%{_localstatedir}/cache/%{name}
 %{__mkdir} -p $RPM_BUILD_ROOT/var/lib/%{name}
 
+%{__install} -D -m755 %{SOURCE1} %{buildroot}%{_sysconfdir}/cron.daily/%{name}
+
 
 %postun
 if [ $1 -eq 0 ]; then
@@ -156,6 +159,7 @@ fi
 %doc README.md
 %{_bindir}/%{name}
 %{_mandir}/man1/*.1*
+%{_sysconfdir}/cron.daily/%{name}
 %attr(0750,root,root) %dir %{_localstatedir}/cache/%{name}
 %attr(0755, root, root)   %dir /var/lib/%{name}
 #%%attr(0644, root, root) %%verify(not md5 size mtime) %%ghost %%config(missingok,noreplace) /var/lib/%%{name}/*

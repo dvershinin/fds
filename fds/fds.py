@@ -27,6 +27,11 @@ def action_block(ip_or_country_name, reload=True):
         fw.block_country(ip_or_country_name, reload=reload)
 
 
+def action_cron():
+    fw = FirewallWrapper()
+    fw.update_ipsets()
+
+
 def action_unblock(ip_or_country_name):
     fw = FirewallWrapper()
     ip_or_country_name = six.text_type(ip_or_country_name)
@@ -62,12 +67,13 @@ def action_list(what='blocked'):
             print(country_name)
 
 
-
 def main():
     parser = argparse.ArgumentParser(description='Convenient FirewallD wrapper.',
                                      prog='fds')
 
     subparsers = parser.add_subparsers(help='Special action to run, e.g. block', dest="action")
+
+    parser_cron = subparsers.add_parser('cron', help='Run fds cron tasks, e.g. updating IP sets')
 
     parser_block = subparsers.add_parser('block', help='Block a network, IP, or a country')
     parser_block.add_argument('value', nargs='?', default=None, help='Action value')
@@ -102,17 +108,21 @@ def main():
         log.basicConfig(format="%(levelname)s: %(message)s", level=log.DEBUG)
         log.debug("Verbose output.")
     else:
-        log.basicConfig(format="%(message)s", level=log.INFO)
+        level = log.WARNING if args.action == 'cron' else log.INFO
+        log.basicConfig(format="%(message)s", level=level)
 
     if args.action == 'block':
         return action_block(args.value, reload=args.reload)
+
+    if args.action == 'cron':
+        return action_cron()
 
     if args.action == 'unblock':
         return action_unblock(args.value)
 
     if args.action == 'reset':
         return action_reset()
-    
+
     if args.action == 'list':
         return action_list(what=args.what)
 

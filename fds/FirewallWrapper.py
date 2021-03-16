@@ -23,7 +23,6 @@ def do_maybe_already_enabled(func):
                 # re-raise :)
                 raise e
 
-
     return func_wrapper
 
 
@@ -39,7 +38,6 @@ def do_maybe_not_enabled(func):
             else:
                 # re-raise :)
                 raise e
-
 
     return func_wrapper
 
@@ -57,7 +55,6 @@ def do_maybe_invalid_ipset(func):
                 # re-raise :)
                 raise e
 
-
     return func_wrapper
 
 
@@ -65,11 +62,9 @@ class FirewallWrapper:
     NETWORKBLOCK_IPSET4 = 'networkblock4'
     NETWORKBLOCK_IPSET6 = 'networkblock6'
 
-
     def __init__(self):
         self.fw = FirewallClient()
         self.config = self.fw.config()
-
 
     def get_create_set(self, name, family='inet'):
         if name in self.config.getIPSetNames():
@@ -103,7 +98,6 @@ class FirewallWrapper:
             FirewallWrapper.NETWORKBLOCK_IPSET4, settings
         )
 
-
     def get_block_ipset6(self):
         if FirewallWrapper.NETWORKBLOCK_IPSET6 in self.config.getIPSetNames():
             return self.config.getIPSetByName(
@@ -119,7 +113,6 @@ class FirewallWrapper:
         return self.config.addIPSet(
             FirewallWrapper.NETWORKBLOCK_IPSET6, settings
         )
-
 
     def get_block_ipset_for_ip(self, ip):
         if ip.version == 4:
@@ -160,7 +153,6 @@ class FirewallWrapper:
         block_ipset.addEntry(str(ip))
         log.info('Reloading FirewallD to apply permanent configuration')
         self.fw.reload()
-
 
     @do_maybe_already_enabled
     def block_ip(self, ip, reload=True):
@@ -226,6 +218,27 @@ class FirewallWrapper:
                     blocked_countries.append(countries.names_by_code[country_code])
         return blocked_countries
 
+    def update_ipsets(self):
+        need_reload = False
+        all_ipsets = self.fw.getIPSets()
+        from .Countries import Countries
+        countries = Countries()
+        is_tor_blocked = False
+        for ipset_name in all_ipsets:
+            if ipset_name.startswith('fds-tor-'):
+                is_tor_blocked = True
+            elif ipset_name.startswith('fds-'):
+                country_code = ipset_name.split('-')[1]
+                if country_code in countries.names_by_code:
+                    country_name = countries.names_by_code[country_code]
+                    self.block_country(country_name, reload=False)
+                    need_reload = True
+        if is_tor_blocked:
+            self.block_tor(reload=False)
+            need_reload = True
+        if need_reload:
+            self.fw.reload()
+        return True
 
     def reset(self):
         drop_zone = self.config.getZoneByName('drop')
@@ -244,7 +257,6 @@ class FirewallWrapper:
                 self.destroy_ipset_by_name(ipset_name)
 
         self.fw.reload()
-
 
     def block_tor(self, reload=True):
         log.info('Blocking Tor exit nodes')
@@ -308,7 +320,6 @@ class FirewallWrapper:
         log.info('Done!')
         # while cron will do "sync" behavior"
 
-
     def unblock_country(self, ip_or_country_name):
         # print('address/netmask is invalid: %s' % sys.argv[1])
         # parse out as a country
@@ -330,7 +341,6 @@ class FirewallWrapper:
         self.fw.reload()
         log.info('Done!')
         # while cron will do "sync" behavior"
-
 
     def unblock_ip(self, ip_or_country_name):
         block_ipset = self.get_block_ipset_for_ip(ip_or_country_name)
