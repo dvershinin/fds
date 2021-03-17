@@ -355,3 +355,4 @@ class FirewallWrapper:
         self.ensure_entry_not_in_ipset(block_ipset, ip_or_country_name)
         log.info('Reloading FirewallD to apply permanent configuration')
         self.fw.reload()
+

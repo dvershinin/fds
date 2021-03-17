@@ -42,11 +42,14 @@ class WebClient:
         s.headers.update({'User-Agent': 'fds/{}'.format(__version__)})
         self.cs = CacheControl(s, cache=FileCache('/var/cache/fds'))
 
-
-    def download_file(self, url, local_filename=None, display_name=None, return_type='filename'):
+    def download_file(self, url, local_filename=None, display_name=None,
+                      return_type='filename'):
         contents = b''
         if local_filename is None:
             local_filename = url.split('/')[-1]
+        import logging
+        log_level = logging.getLogger().level
+        disable_pbar = True if log_level >= logging.WARNING else None
         # NOTE the stream=True parameter below
         with self.cs.get(url, stream=True) as r:
             r.raise_for_status()
@@ -59,9 +62,8 @@ class WebClient:
             chunk_bar_size = chunk_size / bar_size
             # bars are by KB
             num_bars = int(file_size / bar_size)
-
             pbar = tqdm(
-                disable=None,  # disable on non-TTY
+                disable=disable_pbar,  # None (default) disables on non-TTY
                 total=num_bars,
                 unit='KB',
                 desc='Downloading {}'.format(local_filename if not display_name else display_name),
