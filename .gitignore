@@ -1,4 +1,5 @@
 /venv/
+/venv-docs/
 /*.egg-info/
 __pycache__/
 *.log
