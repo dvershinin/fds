@@ -15,7 +15,8 @@ install_requires = [
     'netaddr',
     'cachecontrol',
     'tqdm',
-    'cloudflare>=2.3.1'
+    'cloudflare>=2.3.1',
+    'setuptools_scm'
 ]
 tests_requires = ["pytest", "flake8", "faker"]
 
@@ -24,13 +25,8 @@ with open("README.md", "r") as fh:
 
 base_dir = os.path.dirname(__file__)
 
-version = {}
-with open(os.path.join(base_dir, "fds", "__about__.py")) as fp:
-    exec(fp.read(), version)
-
 setup(
     name="fds",
-    version=version["__version__"],
     author="Danila Vershinin",
     author_email="info@getpagespeed.com",
     url="https://github.com/dvershinin/fds",
@@ -41,6 +37,8 @@ setup(
     package_data={'fds': ['data/*.json']},
     zip_safe=False,
     license="BSD",
+    use_scm_version=True,
+    setup_requires=['setuptools_scm', 'setuptools_scm_git_archive'],
     install_requires=install_requires,
     extras_require={
         "tests": install_requires + tests_requires,

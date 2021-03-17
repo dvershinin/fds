@@ -9,7 +9,7 @@ import six
 
 from .Countries import Countries
 from .FirewallWrapper import FirewallWrapper
-
+from .__about__ import __version__
 
 def is_root():
     return os.geteuid() == 0
@@ -101,6 +101,9 @@ def main():
                                         help='Kind of blocked entries to be listed')
 
     parser.add_argument('--verbose', dest='verbose', action='store_true')
+
+    parser.add_argument('--version', action='version',
+                        version='%(prog)s {version}'.format(version=__version__))
 
     args = parser.parse_args()
 
