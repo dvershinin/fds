@@ -21,7 +21,7 @@
 Name:           fds
 Version:        0
 Release:        1%{?dist}
-Summary:        The go-to FirewallD CLI app
+Summary:        The go-to FirewallD CLI companion app
 License:        BSD
 URL:            https://github.com/dvershinin/fds
 Source0:        https://github.com/dvershinin/fds/archive/v%{version}.tar.gz
