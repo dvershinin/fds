@@ -39,9 +39,10 @@ BuildRequires:  python2-cloudflare
 Requires:       python2-CacheControl
 # For tests
 BuildRequires:  python2-pytest
-%endif
 # Version extraction
 BuildRequires:  python2-setuptools_scm_git_archive
+%endif
+
 
 %if %{with python3}
 BuildRequires:  python%{python3_pkgversion}-devel
@@ -53,9 +54,10 @@ BuildRequires:  python%{python3_pkgversion}-cloudflare
 Requires:       python%{python3_pkgversion}-CacheControl
 # For tests
 BuildRequires:  python%{python3_pkgversion}-pytest
-%endif
 # Version extraction
 BuildRequires:  python%{python3_pkgversion}-setuptools_scm_git_archive
+%endif
+
 
 # For generation of man page
 BuildRequires:  pandoc
