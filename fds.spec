@@ -41,7 +41,7 @@ Requires:       python2-CacheControl
 BuildRequires:  python2-pytest
 %endif
 # Version extraction
-BuildRequires:  python2-setuptools_scm
+BuildRequires:  python2-setuptools_scm_git_archive
 
 %if %{with python3}
 BuildRequires:  python%{python3_pkgversion}-devel
@@ -55,7 +55,7 @@ Requires:       python%{python3_pkgversion}-CacheControl
 BuildRequires:  python%{python3_pkgversion}-pytest
 %endif
 # Version extraction
-BuildRequires:  python%{python3_pkgversion}-setuptools_scm
+BuildRequires:  python%{python3_pkgversion}-setuptools_scm_git_archive
 
 # For generation of man page
 BuildRequires:  pandoc
