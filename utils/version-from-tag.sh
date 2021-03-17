@@ -21,6 +21,7 @@ else
     BUILD_NAME="${PKG}-0"
     mkdir "/tmp/${BUILD_NAME}"
     cp -aRp ./* "/tmp/${BUILD_NAME}/"
+    echo "ref-names: HEAD -> master, tag: ${TAG}" > "/tmp/${BUILD_NAME}/.git_archival.txt"
     pushd /tmp || exit
     tar -czvf ./v0.tar.gz "./${BUILD_NAME}"
     popd || exit
