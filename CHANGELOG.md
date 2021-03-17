@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.0.11] - 2021-03-17
+### Added
+* `fds cron`. When using packaged install, this is automatically there for you.
+
 ## [0.0.10] - 2021-03-15
 ### Added
 * `fds block` now has new option `--no-reload` to skip reloading FirewallD.

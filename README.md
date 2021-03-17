@@ -25,6 +25,14 @@ fds block 1.2.3.4
 
 It makes the task of managing your FirewallD easy and human-friendly.
 
+## Installation on CentOS/RHEL 7, 8
+
+```bash
+sudo yum -y install https://extras.getpagespeed.com/release-latest.rpm
+sudo yum -y install fds
+```
+
+
 ## What `fds` can do 
 
 The `fds` is utility program for users of FirewallD. It is a helper to easily perform day-to-day 
@@ -111,6 +119,11 @@ You can quickly remove all blocks (and by that, all IP sets associated with `fds
 fds reset
 ```
 
+## Notes
+
+The `fds` package automatically installs a cron job that syncs your blocked IP sets daily.
+So there is no need to do anything to ensure a country (or Tor) stays blocked.
+
 ### Planned
 
 * block ranges in the Cloudflare firewall (kinda helper firewall for cloudflare) 
@@ -118,13 +131,6 @@ and works with both firewalld and cloudflare, e.g. http://jodies.de/ipcalc?host=
 * declare a CDN of servers and push blocking commands across those server from one place (ansible-like), useful for dynamic blocking
 from the central server (honeypot)
 * drop outbound connections (shortcut to https://cogitantium.blogspot.com/2017/06/how-to-drop-outbound-connections-with.html) 
-
-## Installation on CentOS/RHEL 7, 8
-
-```bash
-sudo yum -y install https://extras.getpagespeed.com/release-latest.rpm
-sudo yum -y install fds
-```
 
 See contributing guide for development setup (if not using packages).
 
