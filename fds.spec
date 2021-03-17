@@ -40,6 +40,8 @@ Requires:       python2-CacheControl
 # For tests
 BuildRequires:  python2-pytest
 %endif
+# Version extraction
+BuildRequires:  python2-setuptools_scm
 
 %if %{with python3}
 BuildRequires:  python%{python3_pkgversion}-devel
@@ -52,6 +54,8 @@ Requires:       python%{python3_pkgversion}-CacheControl
 # For tests
 BuildRequires:  python%{python3_pkgversion}-pytest
 %endif
+# Version extraction
+BuildRequires:  python%{python3_pkgversion}-setuptools_scm
 
 # For generation of man page
 BuildRequires:  pandoc
@@ -79,6 +83,8 @@ Requires:       python2-tqdm
 Requires:       python2-cloudflare
 # will bring in msgpack and lockfile dependencies:
 Requires:       python2-CacheControl
+# Version extraction
+Requires:       python2-setuptools_scm
 %{?python_provide:%python_provide python2-%{name}}
  
 %description -n python2-%{name}
@@ -98,6 +104,8 @@ Requires:       python%{python3_pkgversion}-tqdm
 Requires:       python%{python3_pkgversion}-cloudflare
 # will bring in msgpack and lockfile dependencies:
 Requires:       python%{python3_pkgversion}-CacheControl
+# Version extraction
+Requires:       python%{python3_pkgversion}-setuptools_scm
 %{?python_provide:%python_provide python%{python3_pkgversion}-%{name}}
 
 %description -n python%{python3_pkgversion}-%{name}
