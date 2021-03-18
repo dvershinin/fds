@@ -98,7 +98,7 @@ class CloudflareWrapper(CloudFlare):
         # The premise is that user creates fds specific token and/or ensures "Account Resources"
         # setting for it to include only account fds operates on. So we do blocks on each account
         if not self.use:
-            pass
+            return
         try:
             self.all_accounts = self.accounts.get()
         except CloudFlareAPIError as e:
