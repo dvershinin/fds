@@ -89,7 +89,7 @@ def action_list(what='blocked'):
     if what == 'countries':
         countries = Countries()
         countries.print_all()
-    elif what == 'regions':
+    elif what == 'continents':
         countries = Countries()
         countries.print_all_continents()
     elif what == 'blocked':
@@ -143,7 +143,7 @@ def main():
     parser_list = subparsers.add_parser('list', help='Show a listing of ...')
     list_subparsers = parser_list.add_subparsers(
         dest='what',
-        help='Specify listing type'
+        help='Specify listing type',
     )
 
     list_blocked_subparser = list_subparsers.add_parser('blocked', help='List blocked')
@@ -153,7 +153,7 @@ def main():
 
     list_countries_subparser = list_subparsers.add_parser('countries', help='List countries')
 
-    list_regions_subparser = list_subparsers.add_parser('regions', help='List regions')
+    list_continents_subparser = list_subparsers.add_parser('continents', help='List continents')
 
     parser.add_argument('--verbose', dest='verbose', action='store_true')
 
