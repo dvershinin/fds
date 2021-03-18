@@ -4,27 +4,64 @@ import argparse
 import ipaddress
 import logging as log  # for verbose output
 import os
-
+import sys
 import six
 
 from .Countries import Countries
 from .FirewallWrapper import FirewallWrapper
 from .__about__ import __version__
+from .config import action_config
+
+
+def commandline_arg(bytestring):
+    """
+    Workaround fix for Python 2 input argument to be Unicode.
+    See: https://stackoverflow.com/questions/22947181/dont-argparse-read-unicode-from-commandline
+    """
+    unicode_string = bytestring.decode(sys.getfilesystemencoding())
+    return unicode_string
+
 
 def is_root():
     return os.geteuid() == 0
 
 
+def block_region(region):
+    """
+    Simply goes over all countries with the region and nukes them all
+    Args:
+        region ():
+
+    Returns:
+
+    """
+    countries = Countries()
+    for country in countries:
+        if country.data['region'] == region:
+            action_block(country.name, reload=False)
+
+
 def action_block(ip_or_country_name, reload=True):
+    # FD
     fw = FirewallWrapper()
+    # CF
+    from cds.CloudflareWrapper import CloudflareWrapper
+    cw = CloudflareWrapper()
     if 'tor' == ip_or_country_name:
         return fw.block_tor(reload=reload)
     ip_or_country_name = six.text_type(ip_or_country_name)
     try:
         ip_or_country_name = ipaddress.ip_network(ip_or_country_name)
         fw.block_ip(ip_or_country_name, reload=reload)
+        cw.block_ip(ip_or_country_name)
     except ValueError:
-        fw.block_country(ip_or_country_name, reload=reload)
+        countries = Countries()
+        regions = countries.get_continents()
+        if ip_or_country_name in regions:
+            block_region(ip_or_country_name)
+        else:
+            fw.block_country(ip_or_country_name, reload=reload)
+            cw.block_country(ip_or_country_name)
 
 
 def action_cron():
@@ -52,6 +89,9 @@ def action_list(what='blocked'):
     if what == 'countries':
         countries = Countries()
         countries.print_all()
+    elif what == 'regions':
+        countries = Countries()
+        countries.print_all_continents()
     elif what == 'blocked':
         fw = FirewallWrapper()
         print("==================")
@@ -67,6 +107,12 @@ def action_list(what='blocked'):
             print(country_name)
 
 
+def action_info(v):
+    countries = Countries()
+    country = countries.getByName(v)
+    print(country)
+
+
 def main():
     parser = argparse.ArgumentParser(description='Convenient FirewallD wrapper.',
                                      prog='fds')
@@ -75,13 +121,22 @@ def main():
 
     parser_cron = subparsers.add_parser('cron', help='Run fds cron tasks, e.g. updating IP sets')
 
+    parser_config = subparsers.add_parser('config', help='Quickly configure your firewall')
+
     parser_block = subparsers.add_parser('block', help='Block a network, IP, or a country')
-    parser_block.add_argument('value', nargs='?', default=None, help='Action value')
+    if six.PY2:
+        type = commandline_arg
+    else:
+        type = str
+    parser_block.add_argument('value', nargs='?', default=None, help='Action value', type=type)
     parser_block.add_argument('--no-reload', '-nr', dest='reload', action='store_false',
                               default=True, help='Skip reloading FirewallD')
 
     parser_unblock = subparsers.add_parser('unblock')
-    parser_unblock.add_argument('value', nargs='?', default=None, help='Action value')
+    parser_unblock.add_argument('value', nargs='?', default=None, help='Action value', type=type)
+
+    parser_info = subparsers.add_parser('info')
+    parser_info.add_argument('value', nargs='?', default=None, help='Action value', type=type)
 
     subparsers.add_parser('reset')
 
@@ -90,15 +145,15 @@ def main():
         dest='what',
         help='Specify listing type'
     )
+
     list_blocked_subparser = list_subparsers.add_parser('blocked', help='List blocked')
     list_blocked_subparser.add_argument('kind', nargs='?', default='all',
                                         choices=['all', 'networks'],
                                         help='Kind of blocked entries to be listed')
 
-    list_blocked_subparser = list_subparsers.add_parser('countries', help='List countries')
-    list_blocked_subparser.add_argument('kind', nargs='?', default='all',
-                                        choices=['all', 'networks'],
-                                        help='Kind of blocked entries to be listed')
+    list_countries_subparser = list_subparsers.add_parser('countries', help='List countries')
+
+    list_regions_subparser = list_subparsers.add_parser('regions', help='List regions')
 
     parser.add_argument('--verbose', dest='verbose', action='store_true')
 
@@ -113,6 +168,12 @@ def main():
     else:
         level = log.WARNING if args.action == 'cron' else log.INFO
         log.basicConfig(format="%(message)s", level=level)
+
+    if args.action == 'config':
+        return action_config()
+
+    if args.action == 'info':
+        return action_info(args.value)
 
     if args.action == 'block':
         return action_block(args.value, reload=args.reload)

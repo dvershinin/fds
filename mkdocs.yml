@@ -24,6 +24,7 @@ plugins:
         - fds
 nav:
   - Overview: index.md
+  - Cloudflare: cloudflare.md
   - Changelog: changelog.md
   - License: license.md
   - 'Blog': 'https://www.getpagespeed.com/posts'

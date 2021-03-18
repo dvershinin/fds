@@ -22,6 +22,13 @@ class Country:
             self.code = data['cca2']
             self.demonym = data['demonym']
 
+    def __str__(self):
+        out = """
+Name: {}
+TLD: {}
+        """.format(self.name, self.data['tld'])
+        return out
+
 
     def getNation(self):
         nationOverrides = {

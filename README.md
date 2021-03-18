@@ -41,6 +41,15 @@ firewall tasks:
 * block users of Tor
 * block countries
 * block arbitrary IP addresses
+* block the same over at Cloudflare
+
+### Integrations
+
+By default, `fds` only operates with FirewallD. 
+
+To enable [Cloudflare integration](docs/cloudflare.md), run:
+ 
+    fds config 
 
 ## Block Tor
 
@@ -62,18 +71,27 @@ This blocks IP address in a proper(©) fashion by ensuring that the IP is in a s
 that the set is a source to FirewallD's `drop` zone. Using IP sets is the corner stone of consistent
 firewall management!
 
-## Ban a country
+## Ban a country or a continent
 
 ```bash
 fds block <Country Name>
 fds block China
+fds block Asia
 ```
 
-You can list all country names available for blocking by runing:
+You can list all country names available for blocking by running:
 
 ```bash
 fds list countries
 ``` 
+
+You can list all continents available for blocking by running:
+
+```bash
+fds list continents
+``` 
+
+
 
 ### `--no-reload` (`-nr`)
 
@@ -126,8 +144,6 @@ So there is no need to do anything to ensure a country (or Tor) stays blocked.
 
 ### Planned
 
-* block ranges in the Cloudflare firewall (kinda helper firewall for cloudflare) 
-and works with both firewalld and cloudflare, e.g. http://jodies.de/ipcalc?host=114.119.128.0&mask1=18&mask2=24
 * declare a CDN of servers and push blocking commands across those server from one place (ansible-like), useful for dynamic blocking
 from the central server (honeypot)
 * drop outbound connections (shortcut to https://cogitantium.blogspot.com/2017/06/how-to-drop-outbound-connections-with.html) 

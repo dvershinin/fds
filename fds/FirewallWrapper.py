@@ -142,6 +142,12 @@ class FirewallWrapper:
             ipset.get_property('name')
         ))
 
+
+    @do_maybe_already_enabled
+    def add_service(self, name, zone='public'):
+        self.fw.addService(zone, name)
+        self.fw.runtimeToPermanent()
+
     @do_maybe_already_enabled
     def block(self, ip):
         block_ipset = self.get_block_ipset_for_ip(ip)
@@ -286,7 +292,7 @@ class FirewallWrapper:
         c = countries.getByName(ip_or_country_name)
 
         if not c:
-            log.error('{} does not look like a correct IP or a country name'.format(ip_or_country_name))
+            log.error('{} does not look like a correct IP, region, or a country name'.format(ip_or_country_name))
             return False
 
         log.info('Blocking {} {}'.format(c.name, c.getFlag()))

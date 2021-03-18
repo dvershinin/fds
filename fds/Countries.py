@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import json
 import os
 
+import six
 from six import add_metaclass
 from .Country import Country
 
@@ -40,6 +41,27 @@ class Countries(object):
                 self.countries[commonName] = country
                 self.names_by_code[c['cca2'].lower()] = commonName
 
+
+    def __iter__(self):
+        return six.itervalues(self.countries)
+
+    def get_continents(self):
+        out = []
+        for name in self.countries:
+            country = self.countries[name]
+            region = country.data['region']
+            if region == "Americas":
+                region = country.data['subregion']
+            if region in ['Caribbean', 'Central America']:
+                region = 'North America'
+            if region not in out:
+                out.append(region)
+        return out
+
+    def print_all_continents(self):
+        regions = self.get_continents()
+        for r in regions:
+            print(r)
 
     def getByName(self, name):
         # assume the country exists if we pass some string
