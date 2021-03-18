@@ -34,7 +34,7 @@ BuildRequires:  python2-devel
 BuildRequires:  python2-six
 BuildRequires:  python-netaddr
 BuildRequires:  python2-tqdm
-BuildRequires:  python2-cloudflare
+BuildRequires:  python2-cloudflare >= 2.7.1
 # will bring in msgpack and lockfile dependencies:
 Requires:       python2-CacheControl
 # For tests
@@ -49,7 +49,7 @@ BuildRequires:  python%{python3_pkgversion}-devel
 BuildRequires:  python%{python3_pkgversion}-six
 BuildRequires:  python%{python3_pkgversion}-netaddr
 BuildRequires:  python%{python3_pkgversion}-tqdm
-BuildRequires:  python%{python3_pkgversion}-cloudflare
+BuildRequires:  python%{python3_pkgversion}-cloudflare >= 2.7.1
 # will bring in msgpack and lockfile dependencies:
 Requires:       python%{python3_pkgversion}-CacheControl
 # For tests
@@ -82,7 +82,7 @@ Requires:       python2-firewall
 Requires:       python2-six
 Requires:       python-netaddr
 Requires:       python2-tqdm
-Requires:       python2-cloudflare
+Requires:       python2-cloudflare >= 2.7.1
 # will bring in msgpack and lockfile dependencies:
 Requires:       python2-CacheControl
 %{?python_provide:%python_provide python2-%{name}}
@@ -101,7 +101,7 @@ Requires:       python%{python3_pkgversion}-firewall
 Requires:       python%{python3_pkgversion}-six
 Requires:       python%{python3_pkgversion}-netaddr
 Requires:       python%{python3_pkgversion}-tqdm
-Requires:       python%{python3_pkgversion}-cloudflare
+Requires:       python%{python3_pkgversion}-cloudflare >= 2.7.1
 # will bring in msgpack and lockfile dependencies:
 Requires:       python%{python3_pkgversion}-CacheControl
 %{?python_provide:%python_provide python%{python3_pkgversion}-%{name}}
