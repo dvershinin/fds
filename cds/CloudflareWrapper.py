@@ -144,5 +144,32 @@ class CloudflareWrapper(CloudFlare):
                         raise e
 
 
-    def block_country(self, ip_or_country_name):
+    def block_country(self, country, comment='fds'):
+        if not self.use:
+            log.info('Skipped block in Cloudflare as it was not set up. Run fds config?')
+            return
+        for a in self.all_accounts:
+            log.info('Blocking {} in Cloudflare account {}'.format(country.name, a['name']))
+            block_data = {
+                'mode': 'block',
+                'configuration': {
+                    'target': 'country',
+                    'value': country.code,
+                },
+                'notes': comment
+            }
+            log.debug(block_data)
+            # https://api.cloudflare.com/#account-level-firewall-access-rule-create-access-rule
+            try:
+                self.accounts.firewall.access_rules.rules.post(a['id'], data=block_data)
+            except CloudFlareAPIError as e:
+                if str(e) == 'firewallaccessrules.api.duplicate_of_existing':
+                    pass
+                elif str(e) == 'firewallaccessrules.api.not_entitled.country_block':
+                    log.warning('Not entitled to block countries in Cloudflare. Upgrade your account?')
+                else:
+                    raise e
+
+
+    def unblock_ip(self, ip):
         pass

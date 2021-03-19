@@ -284,18 +284,11 @@ class FirewallWrapper:
         log.info('Done!')
         # while cron will do "sync" behavior"
 
-    def block_country(self, ip_or_country_name, reload=True):
+    def block_country(self, country, reload=True):
         # print('address/netmask is invalid: %s' % sys.argv[1])
         # parse out as a country
-        from .Countries import Countries
-        countries = Countries()
-        c = countries.getByName(ip_or_country_name)
 
-        if not c:
-            log.error('{} does not look like a correct IP, region, or a country name'.format(ip_or_country_name))
-            return False
-
-        log.info('Blocking {} {}'.format(c.name, c.getFlag()))
+        log.info('Blocking {} {}'.format(country.name, country.getFlag()))
         # print("\N{grinning face}")
 
         # TODO get aggregated zone file, save as cache,
@@ -305,9 +298,9 @@ class FirewallWrapper:
         # then sync zones via "fds cron"
         # TODO conditional get test on getpagespeed.com
         w = WebClient()
-        country_networks = w.get_country_networks(country=c)
+        country_networks = w.get_country_networks(country=country)
 
-        ipset = self.get_create_set(c.get_set_name())
+        ipset = self.get_create_set(country.get_set_name())
         self.ensure_ipset_entries(ipset, country_networks)
 
         # this is slow. setEntries is a lot faster
@@ -331,7 +324,7 @@ class FirewallWrapper:
         # parse out as a country
         from .Countries import Countries
         countries = Countries()
-        c = countries.getByName(ip_or_country_name)
+        c = countries.get_by_name(ip_or_country_name)
 
         if not c:
             log.error('{} does not look like a correct IP or a country name'.format(ip_or_country_name))

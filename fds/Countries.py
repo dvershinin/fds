@@ -63,7 +63,7 @@ class Countries(object):
         for r in regions:
             print(r)
 
-    def getByName(self, name):
+    def get_by_name(self, name):
         # assume the country exists if we pass some string
         if not name:
             return False

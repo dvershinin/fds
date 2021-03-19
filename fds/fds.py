@@ -60,8 +60,13 @@ def action_block(ip_or_country_name, reload=True):
         if ip_or_country_name in regions:
             block_region(ip_or_country_name)
         else:
-            fw.block_country(ip_or_country_name, reload=reload)
-            cw.block_country(ip_or_country_name)
+            country = countries.get_by_name(ip_or_country_name)
+            if not country:
+                log.error('{} does not look like a correct IP, region, or a country name'.format(
+                    ip_or_country_name))
+                return False
+            fw.block_country(country, reload=reload)
+            cw.block_country(country)
 
 
 def action_cron():
@@ -71,10 +76,14 @@ def action_cron():
 
 def action_unblock(ip_or_country_name):
     fw = FirewallWrapper()
+    # CF
+    from cds.CloudflareWrapper import CloudflareWrapper
+    cw = CloudflareWrapper()
     ip_or_country_name = six.text_type(ip_or_country_name)
     try:
         ip_or_country_name = ipaddress.ip_network(ip_or_country_name)
         fw.unblock_ip(ip_or_country_name)
+        cw.unblock_ip(ip_or_country_name)
     except ValueError:
         fw.unblock_country(ip_or_country_name)
 
@@ -109,7 +118,7 @@ def action_list(what='blocked'):
 
 def action_info(v):
     countries = Countries()
-    country = countries.getByName(v)
+    country = countries.get_by_name(v)
     print(country)
 
 
