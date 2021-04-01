@@ -55,6 +55,8 @@ def action_block(ip_or_country_name, ipset_name=None, reload=True):
         fw.block_ip(ip_or_country_name, ipset_name=ipset_name, reload=reload)
         cw.block_ip(ip_or_country_name)
     except ValueError:
+        # we know now it's not IP, so we capitalize in case user passed "country" and not "Country"
+        ip_or_country_name = ip_or_country_name.capitalize()
         countries = Countries()
         regions = countries.get_continents()
         if ip_or_country_name in regions:
