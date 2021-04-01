@@ -68,6 +68,7 @@ Requires:       python2-%{name} = %{version}-%{release}
 %else
 Requires:       python%{python3_pkgversion}-%{name} = %{version}-%{release}
 %endif
+Requires:       conntrack-tools
 
 %description
 fds is the CLI wrapper for FirewallD/Cloudflare, that you'll love

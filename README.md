@@ -71,6 +71,9 @@ This blocks IP address in a proper(©) fashion by ensuring that the IP is in a s
 that the set is a source to FirewallD's `drop` zone. Using IP sets is the corner stone of consistent
 firewall management!
 
+`fds` is also smart enough to break any existing connections originating from that IP address.
+Useful if malicious requests are in process.
+
 ## Ban a country or a continent
 
 ```bash

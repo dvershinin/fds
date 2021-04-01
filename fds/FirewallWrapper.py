@@ -172,6 +172,9 @@ class FirewallWrapper:
         if reload:
             log.info('Reloading FirewallD to apply permanent configuration')
             self.fw.reload()
+        import subprocess
+        subprocess.run(["/sbin/conntrack", "-D", "-s", str(ip)])
+
 
     def get_blocked_ips4(self):
         block_ipset4 = self.get_block_ipset4()
