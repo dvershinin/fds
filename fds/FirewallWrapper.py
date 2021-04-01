@@ -61,6 +61,7 @@ def do_maybe_invalid_ipset(func):
 class FirewallWrapper:
     NETWORKBLOCK_IPSET4 = 'networkblock4'
     NETWORKBLOCK_IPSET6 = 'networkblock6'
+    NETWORKBLOCK_IPSET_BASE_NAME = 'networkblock'
 
     def __init__(self):
         self.fw = FirewallClient()
@@ -82,10 +83,13 @@ class FirewallWrapper:
             name, settings
         )
 
-    def get_block_ipset4(self):
-        if FirewallWrapper.NETWORKBLOCK_IPSET4 in self.config.getIPSetNames():
+    def get_block_ipset4(self, name=None):
+        if not name:
+            name = FirewallWrapper.NETWORKBLOCK_IPSET_BASE_NAME
+        name = name + '4'
+        if name in self.config.getIPSetNames():
             return self.config.getIPSetByName(
-                FirewallWrapper.NETWORKBLOCK_IPSET4
+                name
             )
         settings = FirewallClientIPSetSettings()
         settings.setType('hash:net')
@@ -95,13 +99,16 @@ class FirewallWrapper:
             'hashsize': '4096'
         })
         return self.config.addIPSet(
-            FirewallWrapper.NETWORKBLOCK_IPSET4, settings
+            name, settings
         )
 
-    def get_block_ipset6(self):
-        if FirewallWrapper.NETWORKBLOCK_IPSET6 in self.config.getIPSetNames():
+    def get_block_ipset6(self, name=None):
+        if not name:
+            name = FirewallWrapper.NETWORKBLOCK_IPSET_BASE_NAME
+        name = name + '6'
+        if name in self.config.getIPSetNames():
             return self.config.getIPSetByName(
-                FirewallWrapper.NETWORKBLOCK_IPSET6
+                name
             )
         settings = FirewallClientIPSetSettings()
         settings.setType('hash:net')
@@ -111,14 +118,14 @@ class FirewallWrapper:
             'hashsize': '4096'
         })
         return self.config.addIPSet(
-            FirewallWrapper.NETWORKBLOCK_IPSET6, settings
+            name, settings
         )
 
-    def get_block_ipset_for_ip(self, ip):
+    def get_block_ipset_for_ip(self, ip, name=None):
         if ip.version == 4:
-            return self.get_block_ipset4()
+            return self.get_block_ipset4(name)
         if ip.version == 6:
-            return self.get_block_ipset6()
+            return self.get_block_ipset6(name)
         return None
 
     @do_maybe_already_enabled
@@ -149,20 +156,8 @@ class FirewallWrapper:
         self.fw.runtimeToPermanent()
 
     @do_maybe_already_enabled
-    def block(self, ip):
-        block_ipset = self.get_block_ipset_for_ip(ip)
-        if not block_ipset:
-            # TODO err: unsupported protocol
-            raise Exception('Unsupported protocol')
-        self.ensure_block_ipset_in_drop_zone(block_ipset)
-        log.info('Adding IP address {} to block set {}'.format(ip, block_ipset.get_property('name')))
-        block_ipset.addEntry(str(ip))
-        log.info('Reloading FirewallD to apply permanent configuration')
-        self.fw.reload()
-
-    @do_maybe_already_enabled
-    def block_ip(self, ip, reload=True):
-        block_ipset = self.get_block_ipset_for_ip(ip)
+    def block_ip(self, ip, ipset_name=None, reload=True):
+        block_ipset = self.get_block_ipset_for_ip(ip, ipset_name)
         if not block_ipset:
             # TODO err: unsupported protocol
             raise Exception('Unsupported protocol')
@@ -172,16 +167,17 @@ class FirewallWrapper:
         if reload:
             log.info('Reloading FirewallD to apply permanent configuration')
             self.fw.reload()
+        log.info('Breaking connection with {}'.format(ip))
         import subprocess
         subprocess.run(["/sbin/conntrack", "-D", "-s", str(ip)])
 
 
-    def get_blocked_ips4(self):
-        block_ipset4 = self.get_block_ipset4()
+    def get_blocked_ips4(self, name=None):
+        block_ipset4 = self.get_block_ipset4(name)
         return block_ipset4.getEntries()
 
-    def get_blocked_ips6(self):
-        block_ipset6 = self.get_block_ipset6()
+    def get_blocked_ips6(self, name=None):
+        block_ipset6 = self.get_block_ipset6(name)
         return block_ipset6.getEntries()
 
     @do_maybe_not_enabled

@@ -41,7 +41,7 @@ def block_region(region):
             action_block(country.name, reload=False)
 
 
-def action_block(ip_or_country_name, reload=True):
+def action_block(ip_or_country_name, ipset_name=None, reload=True):
     # FD
     fw = FirewallWrapper()
     # CF
@@ -52,7 +52,7 @@ def action_block(ip_or_country_name, reload=True):
     ip_or_country_name = six.text_type(ip_or_country_name)
     try:
         ip_or_country_name = ipaddress.ip_network(ip_or_country_name)
-        fw.block_ip(ip_or_country_name, reload=reload)
+        fw.block_ip(ip_or_country_name, ipset_name=ipset_name, reload=reload)
         cw.block_ip(ip_or_country_name)
     except ValueError:
         countries = Countries()
@@ -140,6 +140,8 @@ def main():
     parser_block.add_argument('value', nargs='?', default=None, help='Action value', type=type)
     parser_block.add_argument('--no-reload', '-nr', dest='reload', action='store_false',
                               default=True, help='Skip reloading FirewallD')
+    parser_block.add_argument('--ipset', dest='ipset_name',
+                              default=None, help='Base name for the block IP set ("networkblock", by default)')
 
     parser_unblock = subparsers.add_parser('unblock')
     parser_unblock.add_argument('value', nargs='?', default=None, help='Action value', type=type)
@@ -160,6 +162,7 @@ def main():
                                         choices=['all', 'networks'],
                                         help='Kind of blocked entries to be listed')
 
+
     list_countries_subparser = list_subparsers.add_parser('countries', help='List countries')
 
     list_continents_subparser = list_subparsers.add_parser('continents', help='List continents')
@@ -168,6 +171,8 @@ def main():
 
     parser.add_argument('--version', action='version',
                         version='%(prog)s {version}'.format(version=__version__))
+
+
 
     args = parser.parse_args()
 
@@ -185,7 +190,7 @@ def main():
         return action_info(args.value)
 
     if args.action == 'block':
-        return action_block(args.value, reload=args.reload)
+        return action_block(args.value, args.ipset_name, reload=args.reload)
 
     if args.action == 'cron':
         return action_cron()
