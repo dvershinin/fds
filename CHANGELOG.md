@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.0.16] - 2021-03-17
+### Added
+* `fds block` now accepts `--ipset` argument for specifying base of IP set name
+* Unicode fixes for Python 2
+* Cloudflare integration
+* Break existing connection when blocking an IP
+
 ## [0.0.11] - 2021-03-17
 ### Added
 * `fds cron`. When using packaged install, this is automatically there for you.

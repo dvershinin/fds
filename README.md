@@ -74,6 +74,13 @@ firewall management!
 `fds` is also smart enough to break any existing connections originating from that IP address.
 Useful if malicious requests are in process.
 
+You can specify base name of created/used IP set for blocking, by specifying it in `--ipset`, e.g.
+for `banned4` (IPv4) or `banned4` (IPv6), use:
+
+```bash
+fds block 1.2.3.4 --ipset banned
+```
+
 ## Ban a country or a continent
 
 ```bash
