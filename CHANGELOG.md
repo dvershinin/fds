@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.0.17] - 2021-04-04
+### Fix
+* `fds cron` is now functional
+### Added
+* Support for lowercase country names in `fds block`
+* Fix `conntrack` invocation on Python 2 / CentOS 7
+
 ## [0.0.16] - 2021-03-17
 ### Added
 * `fds block` now accepts `--ipset` argument for specifying base of IP set name
