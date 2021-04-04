@@ -239,7 +239,8 @@ class FirewallWrapper:
                 country_code = ipset_name.split('-')[1]
                 if country_code in countries.names_by_code:
                     country_name = countries.names_by_code[country_code]
-                    self.block_country(country_name, reload=False)
+                    country = countries.get_by_name(country_name)
+                    self.block_country(country, reload=False)
                     need_reload = True
         if is_tor_blocked:
             self.block_tor(reload=False)
