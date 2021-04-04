@@ -169,7 +169,7 @@ class FirewallWrapper:
             self.fw.reload()
         log.info('Breaking connection with {}'.format(ip))
         import subprocess
-        subprocess.run(["/sbin/conntrack", "-D", "-s", str(ip)])
+        subprocess.check_output(["/sbin/conntrack", "-D", "-s", str(ip)])
 
 
     def get_blocked_ips4(self, name=None):
