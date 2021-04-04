@@ -6,7 +6,7 @@ on: push
 jobs:
   # Set the job key. The key is displayed as the job name
   # when a job name is not provided
-  super-lint:
+  test:
     # Name the Job
     name: Lint code base
     # Set the type of machine to run on
@@ -37,6 +37,23 @@ jobs:
         run: |
           sudo mkdir -p /var/cache/fds /var/lib/fds
 
+      - name: Test IP unblock first
+        run: |
+          sudo ./venv/bin/python ./venv/bin/fds unblock 1.2.3.4
+
       - name: Test IP block
         run: |
           sudo ./venv/bin/python ./venv/bin/fds block 1.2.3.4
+
+      - name: Test country block
+        run: |
+          sudo ./venv/bin/python ./venv/bin/fds block China
+  
+      - name: Test cron for sets updating
+        run: |
+          sudo ./venv/bin/python ./venv/bin/fds cron
+
+      - name: Unblock a country
+        run: |
+          sudo ./venv/bin/python ./venv/bin/fds unblock China
+
