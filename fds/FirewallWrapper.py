@@ -170,7 +170,7 @@ class FirewallWrapper:
         log.info('Breaking connection with {}'.format(ip))
         from subprocess import CalledProcessError, check_output
         try:
-            subprocess.check_output(["/sbin/conntrack", "-D", "-s", str(ip)])
+            check_output(["/sbin/conntrack", "-D", "-s", str(ip)])
         except CalledProcessError:
             log.warning('Failed to run conntrack to break connection')
 
