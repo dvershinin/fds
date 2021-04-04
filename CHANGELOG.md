@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 ## [0.0.17] - 2021-04-04
-### Fix
+### Fixed
 * `fds cron` is now functional
 ### Added
 * Support for lowercase country names in `fds block`
