@@ -21,3 +21,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Ensure venv
+        run: |
+          virtualenv --system-site-packages ./venv
+
+      - name: Ensure fds required directories
+          sudo mkdir -p /var/cache/fds /var/lib/fds
+
+      - name: Test IP block
+          sudo ./venv/bin/python ./venv/bin/fds block 1.2.3.4
