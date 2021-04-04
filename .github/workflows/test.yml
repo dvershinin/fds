@@ -21,6 +21,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Fake version
+        run: | 
+          echo "ref-names: HEAD -> master, tag: v0" > ".git_archival.txt"
+
       - name: Ensure venv
         run: |
           virtualenv --system-site-packages ./venv

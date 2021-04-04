@@ -38,8 +38,7 @@ setup(
     license="BSD",
     use_scm_version={
         'write_to': 'fds/__about__.py',
-        'write_to_template': '__version__ = "{version}"',
-        'fallback_version': '0'
+        'write_to_template': '__version__ = "{version}"'
     },
     setup_requires=['setuptools_scm', 'setuptools_scm_git_archive'],
     install_requires=install_requires,
