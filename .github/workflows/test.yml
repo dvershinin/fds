@@ -26,7 +26,9 @@ jobs:
           virtualenv --system-site-packages ./venv
 
       - name: Ensure fds required directories
+        run: |
           sudo mkdir -p /var/cache/fds /var/lib/fds
 
       - name: Test IP block
+        run: |
           sudo ./venv/bin/python ./venv/bin/fds block 1.2.3.4
