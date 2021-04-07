@@ -28,4 +28,11 @@ So if you have multiple accounts, and you want `fds` to operate only on specific
 Once the token is created, copy it to clipboard, then run in your Terminal: `fds config`.
 Paste it in the token when prompted. Done. Cloudflare integration is enabled.
 
+Now, any time you run `fds block 1.2.3.4`, the blocking will be done in both FirewallD and in Cloudflare.
+Specifically, the blocks in Cloudflare are added under Firewall->Tools under every domain in the account.
+
+The same applies to blocking countries. The only gotcha there is that Free Cloudflare accounts are not 
+eligible for country blocking as is. `fds` detects a free account and adds Captcha challenge for blocked
+countries, to at least somehow circumvent the free account's limitations.
+
 
