@@ -144,32 +144,50 @@ class CloudflareWrapper(CloudFlare):
                         raise e
 
 
-    def block_country(self, country, comment='fds'):
+    def set_country_access_rule(self, country, mode, comment='fds'):
+        """
+        TODO search existing rule in order to update vs blind insert
+        https://api.cloudflare.com/#account-level-firewall-access-rule-create-access-rule
+        Args:
+            country ():
+            mode ():
+            comment ():
+
+        Returns:
+
+        """
         if not self.use:
-            log.info('Skipped block in Cloudflare as it was not set up. Run fds config?')
+            log.info('Skipped update in Cloudflare as it was not set up. Run fds config?')
             return
         for a in self.all_accounts:
-            log.info('Blocking {} in Cloudflare account {}'.format(country.name, a['name']))
-            block_data = {
-                'mode': 'block',
+            log.info('Setting access rule to {} {} in Cloudflare account {}'.format(mode, country.name, a['name']))
+            rule_data = {
+                'mode': mode,
                 'configuration': {
                     'target': 'country',
                     'value': country.code,
                 },
                 'notes': comment
             }
-            log.debug(block_data)
-            # https://api.cloudflare.com/#account-level-firewall-access-rule-create-access-rule
+            log.debug(rule_data)
+
             try:
-                self.accounts.firewall.access_rules.rules.post(a['id'], data=block_data)
+                self.accounts.firewall.access_rules.rules.post(a['id'], data=rule_data)
             except CloudFlareAPIError as e:
                 if str(e) == 'firewallaccessrules.api.duplicate_of_existing':
                     pass
-                elif str(e) == 'firewallaccessrules.api.not_entitled.country_block':
-                    log.warning('Not entitled to block countries in Cloudflare. Upgrade your account?')
                 else:
                     raise e
 
+    def block_country(self, country, comment='fds'):
+        try:
+            self.set_country_access_rule(country, 'block')
+        except CloudFlareAPIError as e:
+            if str(e) == 'firewallaccessrules.api.not_entitled.country_block':
+                log.warning('Not entitled to block countries in Cloudflare. Setting Captcha challenge instead')
+                self.set_country_access_rule(country, 'challenge')
+            else:
+                raise e
 
     def unblock_ip(self, ip):
         pass
