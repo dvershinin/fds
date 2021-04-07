@@ -168,12 +168,11 @@ class FirewallWrapper:
             log.info('Reloading FirewallD to apply permanent configuration')
             self.fw.reload()
         log.info('Breaking connection with {}'.format(ip))
-        from subprocess import CalledProcessError, check_output
+        from subprocess import CalledProcessError, check_output, STDOUT
         try:
-            check_output(["/sbin/conntrack", "-D", "-s", str(ip)])
-        except CalledProcessError:
-            log.warning('Failed to run conntrack to break connection')
-
+            check_output(["/sbin/conntrack", "-D", "-s", str(ip)], stderr=STDOUT)
+        except CalledProcessError as e:
+            pass
 
     def get_blocked_ips4(self, name=None):
         block_ipset4 = self.get_block_ipset4(name)
