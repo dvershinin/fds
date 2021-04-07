@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.0.18] - 2021-04-07
+### Added
+* Cloudflare: Fallback to Captcha challenge when account is not eligible for complete country block #11
+
 ## [0.0.17] - 2021-04-04
 ### Fixed
 * `fds cron` is now functional
