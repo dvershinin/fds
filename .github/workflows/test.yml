@@ -16,7 +16,7 @@ jobs:
       - name: Ensure /opt/fds, python2-setuptools_scm_git_archive
         run: |
           sudo mkdir -p /opt/fds
-          yum -y install python2-setuptools_scm_git_archive
+          sudo yum -y install python2-setuptools_scm_git_archive
 
       # Checks out a copy of your repository on the ubuntu-latest machine
       - name: Checkout code
