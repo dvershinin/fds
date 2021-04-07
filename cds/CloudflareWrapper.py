@@ -66,9 +66,8 @@ def network_for_cloudflare(network):
 
 def suggest_set_up():
     print(
-        "Cloudflare authentication is not set or invalid. Create a token by visiting "
-        "https://dash.cloudflare.com/profile/api-tokens")
-    print("There, choose 'Create Custom Token' ")
+        "Cloudflare authentication is not set or invalid. "
+        "See https://fds.getpagespeed.com/en/latest/cloudflare/")
     print('Type n to keep Cloudflare integration disabled, or enter token: ')
     cf_token = six.moves.input("Cloudflare token: ")
     # TODO prefer "fds" section in cloudflare.cfg
