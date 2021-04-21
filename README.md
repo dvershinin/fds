@@ -89,6 +89,12 @@ fds block China
 fds block Asia
 ```
 
+To block a country which has spaces in its name, use quotes:
+
+```bash
+fds block "Country Name"
+```
+
 You can list all country names available for blocking by running:
 
 ```bash
