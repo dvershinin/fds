@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.0.19] - 2021-04-21
+### Fixed
+* Incorrect capitalization of country names
+
 ## [0.0.18] - 2021-04-07
 ### Added
 * Cloudflare: Fallback to Captcha challenge when account is not eligible for complete country block #11
