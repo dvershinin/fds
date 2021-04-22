@@ -35,8 +35,10 @@ BuildRequires:  python2-six
 BuildRequires:  python-netaddr
 BuildRequires:  python2-tqdm
 BuildRequires:  python2-cloudflare >= 2.7.1
+BuildRequires:  python2-psutil
 # will bring in msgpack and lockfile dependencies:
 Requires:       python2-CacheControl
+Requires:       python2-psutil
 # For tests
 BuildRequires:  python2-pytest
 # Version extraction
@@ -50,8 +52,10 @@ BuildRequires:  python%{python3_pkgversion}-six
 BuildRequires:  python%{python3_pkgversion}-netaddr
 BuildRequires:  python%{python3_pkgversion}-tqdm
 BuildRequires:  python%{python3_pkgversion}-cloudflare >= 2.7.1
+BuildRequires:  python%{python3_pkgversion}-psutil
 # will bring in msgpack and lockfile dependencies:
 Requires:       python%{python3_pkgversion}-CacheControl
+Requires:       python%{python3_pkgversion}-psutil
 # For tests
 BuildRequires:  python%{python3_pkgversion}-pytest
 # Version extraction
