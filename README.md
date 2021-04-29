@@ -27,8 +27,23 @@ It makes the task of managing your FirewallD easy and human-friendly.
 
 ## Installation on CentOS/RHEL 7, 8
 
+First, install RPM repository configuration:
+
 ```bash
 sudo yum -y install https://extras.getpagespeed.com/release-latest.rpm
+```
+
+Then, either [subscribe to the RPM repository](https://www.getpagespeed.com/repo-subscribe) (commercial), or, for free usage, disable the binary packages sub-repository,
+which contains non-essential dependencies for `fds`:
+
+```bash
+sudo yum -y install yum-utils
+sudo yum-config-manager --disable getpagespeed-extras
+```
+
+Now you can install `fds`:
+
+```bash
 sudo yum -y install fds
 ```
 
