@@ -76,7 +76,7 @@ def suggest_set_up():
         config.read(cf_config_filename)
         if not config.has_section("CloudFlare"):
             config.add_section("CloudFlare")
-        config['CloudFlare']['token'] = cf_token
+        config.set('CloudFlare', 'token', cf_token)
         # ensure dir .cloudflare exists:
         if not exists(dirname(cf_config_filename)):
             os.makedirs(dirname(cf_config_filename))
