@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.0.22] - 2021-07-21
+### Fixed
+* Auto-start FirewallD if not running
+* Validate Cloudflare token upon saving
+
 ## [0.0.21] - 2021-06-08
 ### Fixed
 * RPM requires python-psutil
