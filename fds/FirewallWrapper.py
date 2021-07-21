@@ -66,6 +66,15 @@ class FirewallWrapper:
     def __init__(self):
         self.fw = FirewallClient()
         self.config = self.fw.config()
+        if not self.config:
+            log.warning('FirewallD is not running attempting to start...')
+            import subprocess
+            import time
+            subprocess.check_output(['systemctl', 'enable', '--now', 'firewalld'])
+            # firewall-cmd synchronously waits for FirewallD startup
+            subprocess.check_output(['firewall-cmd', '--state'])
+            self.fw = FirewallClient()
+            self.config = self.fw.config()
 
     def get_create_set(self, name, family='inet'):
         if name in self.config.getIPSetNames():
