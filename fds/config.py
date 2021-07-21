@@ -16,7 +16,7 @@ def open_web_if_webserver_running():
                 fw.add_service('http')
                 fw.add_service('https')
         else:
-            log.info('Webserver is running and ports are already open')
+            log.info('Webserver is running and ports are already open.')
 
 
 def action_config():
@@ -26,6 +26,6 @@ def action_config():
     from cds.CloudflareWrapper import CloudflareWrapper
     cw = CloudflareWrapper()
     if cw.use:
-        log.info('Using Cloudflare integration because {} exists'.format(cf_config_filename))
+        log.info('Cloudflare integration validated.')
     else:
         suggest_set_up()

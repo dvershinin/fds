@@ -70,40 +70,52 @@ def suggest_set_up():
         "See https://fds.getpagespeed.com/en/latest/cloudflare/")
     print('Type n to keep Cloudflare integration disabled, or enter token: ')
     cf_token = six.moves.input("Cloudflare token: ")
-    # TODO prefer "fds" section in cloudflare.cfg
     if cf_token and 'n' != cf_token.lower():
-        config = ConfigParser()
-        config.read(cf_config_filename)
-        if not config.has_section("CloudFlare"):
-            config.add_section("CloudFlare")
-        config.set('CloudFlare', 'token', cf_token)
-        # ensure dir .cloudflare exists:
-        if not exists(dirname(cf_config_filename)):
-            os.makedirs(dirname(cf_config_filename))
-        with open(cf_config_filename, 'w') as configfile:  # save
-            config.write(configfile)
-            # TODO evaluate security while creation
-            os.chmod(cf_config_filename, 0o600)
+        cf = CloudFlare(token=cf_token)
+        try:
+            token_verification = cf.user.tokens.verify.get()
+            if token_verification['status'] == 'active':
+                config = ConfigParser()
+                config.read(cf_config_filename)
+                section = "CloudFlare"
+                if not config.has_section(section):
+                    # prefer "fds" section in cloudflare.cfg for new setup
+                    section = "fds"
+                    config.add_section("CloudFlare")
+                config.set('CloudFlare', 'token', cf_token)
+                # ensure dir .cloudflare exists:
+                if not exists(dirname(cf_config_filename)):
+                    os.makedirs(dirname(cf_config_filename))
+                with open(cf_config_filename, 'w') as configfile:  # save
+                    config.write(configfile)
+                    # TODO evaluate security while creation
+                    os.chmod(cf_config_filename, 0o600)
+                print('Token is valid. Saved to {}'.format(cf_config_filename))
+                return True
+            else:
+                print('Token is inactive')
+        except CloudFlareAPIError as e:
+            print('Token verification failed: {}'.format(e))
     else:
         print('No token')
+    return False
 
 
 class CloudflareWrapper(CloudFlare):
 
-    def __init__(self, set_up=False):
+    def __init__(self):
         super(CloudflareWrapper, self).__init__()
 
-        self.use = exists(cf_config_filename)
+        self.use = False
         # The premise is that user creates fds specific token and/or ensures "Account Resources"
         # setting for it to include only account fds operates on. So we do blocks on each account
-        if not self.use:
+        if not exists(cf_config_filename):
             return
         try:
             self.all_accounts = self.accounts.get()
+            self.use = True
         except CloudFlareAPIError as e:
             print("Cloudflare API error: {}".format(e))
-            exit(1)
-
 
     def block_ip(self, ip, comment='fds'):
         if not self.use:
