@@ -49,6 +49,14 @@ jobs: # a collection of steps
     docker:
       - image: getpagespeed/rpmbuilder:centos-8
     <<: *defaults
+  fc33:
+    docker:
+      - image: getpagespeed/rpmbuilder:fedora-33
+    <<: *defaults
+  fc34:
+    docker:
+      - image: getpagespeed/rpmbuilder:fedora-34
+    <<: *defaults
   deploy-el7:
     <<: *deploy
     environment:
@@ -57,6 +65,14 @@ jobs: # a collection of steps
     <<: *deploy
     environment:
       DISTRO: el8
+  deploy-fc33:
+    <<: *deploy
+    environment:
+      DISTRO: fc33
+  deploy-fc34:
+    <<: *deploy
+    environment:
+      DISTRO: fc34
 workflows:
   version: 2
   build-deploy-el7:
@@ -84,6 +100,36 @@ workflows:
           context: org-global
           requires:
             - el8
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+  build-deploy-fc33:
+    jobs:
+      - fc33:
+          filters:  # required since `deploy` has tag filters AND requires `build`
+            tags:
+              only: /.*/
+      - deploy-fc33:
+          context: org-global
+          requires:
+            - fc33
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+  build-deploy-fc34:
+    jobs:
+      - fc34:
+          filters:  # required since `deploy` has tag filters AND requires `build`
+            tags:
+              only: /.*/
+      - deploy-fc34:
+          context: org-global
+          requires:
+            - fc34
           filters:
             tags:
               only: /^v.*/

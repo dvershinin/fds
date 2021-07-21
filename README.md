@@ -25,7 +25,7 @@ fds block 1.2.3.4
 
 It makes the task of managing your FirewallD easy and human-friendly.
 
-## Installation on CentOS/RHEL 7, 8
+## Installation on CentOS/RHEL 7, 8 and Fedora 33, 34
 
 First, install RPM repository configuration:
 
