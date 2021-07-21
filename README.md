@@ -186,3 +186,4 @@ See contributing guide for development setup (if not using packages).
 * not in use: `/etc/fds.conf` (info on currently blocked countries or otherwise small data sets suitable for a single config file)
 * not in use: `/var/lib/fds`: zone files, (state data) + (info on what is currently blocked) (???)
 * `/var/cache/fds`: cachecontrol cache
+* `/root/.cloudflare/cloudflare.cfg` Cloudflare authentication
