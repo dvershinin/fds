@@ -14,6 +14,28 @@ sudo rm -rf /etc/firewalld/{zones,ipsets}
 sudo systemctl restart firewalld
 ```
 
-To ensure this does not happen: either wait FirewallD to fix it, or install package `python3-aggregate6` (CentOS/RHEL 8),
-or `python2-aggregate6` (CentOS/RHEL 7). Then `fds` will automagically use the installed module and aggregate
-blocked networks. At this time, the aggregate packages are available by [subscription](https://www.getpagespeed.com/repo-subscribe) only.
+To ensure this does not happen, either:
+ 
+* wait FirewallD to fix it
+* ensure that you do not attempt to block an IP/network that may be a subset of a network you have already blocked
+* optimally, install aggregation packages (see below)
+
+#### ! Important note !
+
+At this time, the aggregate packages are available by [subscription](https://www.getpagespeed.com/repo-subscribe) only.
+This helps continued development of `fds` and other tools, as well as grants you access to a multitude of premium RPM
+packages for CentOS/RHEL.
+
+## CentOS/RHEL 8
+
+```bash
+sudo dnf -y install python3-aggregate6
+```
+
+## CentOS/RHEL 7
+
+```bash
+sudo yum -y install python2-aggregate6
+```
+
+Now `fds` will automagically use the installed module and aggregate blocked networks. 

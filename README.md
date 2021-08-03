@@ -60,7 +60,7 @@ sudo yum -y install fds
 ```
 
 The subscription ships with packages for IP prefixes' aggregation.
-`fds` can use those, and thus essentially overcome some [serious FirewallD bugs](https://fds.getpagespeed.com/en/latest/firewalld/).
+`fds` can use those, and thus essentially overcome some [serious FirewallD bugs](https://fds.getpagespeed.com/firewalld/).
 
 So it's highly recommended to also run the following if you are a subscriber:
 

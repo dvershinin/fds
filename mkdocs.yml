@@ -24,6 +24,7 @@ plugins:
         - fds
 nav:
   - Overview: index.md
+  - FirewallD: firewalld.md
   - Cloudflare: cloudflare.md
   - Changelog: changelog.md
   - License: license.md
