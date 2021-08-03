@@ -172,7 +172,15 @@ class FirewallWrapper:
             raise Exception('Unsupported protocol')
         self.ensure_block_ipset_in_drop_zone(block_ipset)
         log.info('Adding IP address {} to block set {}'.format(ip, block_ipset.get_property('name')))
-        block_ipset.addEntry(str(ip))
+        try:
+            from aggregate6 import aggregate
+            entries = []
+            for entry in block_ipset.getEntries():
+                entries.append(str(entry))
+            entries.append(str(ip))
+            block_ipset.setEntries(aggregate(entries))
+        except ImportError:
+            block_ipset.addEntry(str(ip))
         if reload:
             log.info('Reloading FirewallD to apply permanent configuration')
             self.fw.reload()

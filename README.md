@@ -33,7 +33,9 @@ First, install RPM repository configuration:
 sudo yum -y install https://extras.getpagespeed.com/release-latest.rpm
 ```
 
-Then, either [subscribe to the RPM repository](https://www.getpagespeed.com/repo-subscribe) (commercial), or, for free usage, disable the binary packages sub-repository,
+## Free installation
+
+For free installation and usage, disable the binary packages sub-repository,
 which contains non-essential dependencies for `fds`:
 
 ```bash
@@ -46,6 +48,35 @@ Now you can install `fds`:
 ```bash
 sudo yum -y install fds
 ```
+
+## Installation with subscription
+
+By [subscribing to the GetPageSpeed RPM repository](https://www.getpagespeed.com/repo-subscribe), you gain access to a [number of packages](https://extras.getpagespeed.com/redhat/8/x86_64/repoview/) other than `fds`, as well support its development.
+
+Simply run this command:
+
+```bash
+sudo yum -y install fds
+```
+
+The subscription ships with packages for IP prefixes' aggregation.
+`fds` can use those, and thus essentially overcome some [serious FirewallD bugs](https://fds.getpagespeed.com/en/latest/firewalld/).
+
+So it's highly recommended to also run the following if you are a subscriber:
+
+### CentOS/RHEL 7
+
+```bash
+sudo yum -y install python2-aggregate6
+```
+
+### CentOS/RHEL 8
+
+```bash
+sudo yum -y install python3-aggregate6
+```
+
+
 
 
 ## What `fds` can do 

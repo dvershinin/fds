@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.0.30] - 2021-08-03
+### Added
+* Optionally uses aggregation to overcome FirewallD bugs #22
+
 ## [0.0.22] - 2021-07-21
 ### Fixed
 * Auto-start FirewallD if not running
