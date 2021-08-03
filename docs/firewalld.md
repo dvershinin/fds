@@ -6,7 +6,7 @@ Unfortunately, FirewallD has notorious bugs like [this one](https://bugzilla.red
 This issue is very severe and occurs when you attempt to block overlapping networks.
 It causes the server to appear down and its network connectivity will appear down.
 
-To fix this, run the following to reset FirewallD completely:
+To fix this once it happened, run the following to reset FirewallD completely:
 
 ```bash
 sudo systemctl stop firewalld
@@ -38,4 +38,5 @@ sudo dnf -y install python3-aggregate6
 sudo yum -y install python2-aggregate6
 ```
 
-Now `fds` will automagically use the installed module and aggregate blocked networks. 
+Now `fds` will automagically use the installed module and aggregate blocked networks, when blocking.
+Thus essentially overcoming the FirewallD bug altogether.
