@@ -5,3 +5,4 @@ requests~=2.20.0
 CacheControl~=0.12.6
 setuptools~=39.2.0
 cloudflare~=2.7.1
+urllib3>=1.26.5 # not directly required, pinned by Snyk to avoid a vulnerability
