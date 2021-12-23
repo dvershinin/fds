@@ -126,6 +126,12 @@ def action_info(v):
     print(country)
 
 
+def print_http_header():
+    print('Status: 410 Gone')
+    print('Content-Type: text/plain')
+    print("")
+
+
 def main():
     parser = argparse.ArgumentParser(description='Convenient FirewallD wrapper.',
                                      prog='fds')
@@ -141,11 +147,18 @@ def main():
         type = commandline_arg
     else:
         type = str
-    parser_block.add_argument('value', nargs='?', default=None, help='Action value', type=type)
+    block_value_nargs = None
+    if "REMOTE_ADDR" in os.environ:
+        block_value_nargs = '?'
+        print_http_header()
+    parser_block.add_argument('value', type=type, nargs=block_value_nargs,
+                              help='Block item: can be an IP, network, country or a continent name',
+                              default=os.getenv('REMOTE_ADDR'))
     parser_block.add_argument('--no-reload', '-nr', dest='reload', action='store_false',
                               default=True, help='Skip reloading FirewallD')
     parser_block.add_argument('--ipset', dest='ipset_name',
-                              default=None, help='Base name for the block IP set ("networkblock", by default)')
+                              default=os.getenv('IPSET'),
+                              help='Base name for the block IP set ("networkblock", by default)')
 
     parser_unblock = subparsers.add_parser('unblock')
     parser_unblock.add_argument('value', nargs='?', default=None, help='Action value', type=type)
