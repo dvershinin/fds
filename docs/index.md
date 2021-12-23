@@ -91,7 +91,32 @@ You can list all continents available for blocking by running:
 fds list continents
 ``` 
 
+### Block using environment variables
 
+You can set an environment variable `REMOTE_ADDR` with the value of desired block target, instead
+of supplying it as an argument. The destination block IP set basename can be specified using `IPSET`
+environment variable, e.g.:
+
+```bash
+REMOTE_ADDR=1.2.3.4 IPSET=honeypot fds block
+```
+
+The above command will block the IP `1.2.3.4` by adding it into honeypot*4* IP set, which will be 
+created automatically, if it didn't exist.
+
+This is useful when invoking `fds` as a CGI script for auto-blocking bad actors upon access.
+See [NGINX honeypot – the easiest and fastest way to block bots!](https://www.getpagespeed.com/server-setup/security/nginx-honeypot-the-easiest-and-fastest-way-to-block-bots) for more details.
+
+When `fds` detects these variables, it run in a CGI mode, meaning that its output will include HTTP headers, e.g.:
+
+```
+Status: 410 Gone
+Content-type: text/plain
+
+Adding IP address 1.2.3.4/32 to block set networkblock4
+Reloading FirewallD to apply permanent configuration
+Breaking connection with 1.2.3.4/32
+```
 
 ### `--no-reload` (`-nr`)
 

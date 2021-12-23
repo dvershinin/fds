@@ -67,7 +67,7 @@ def network_for_cloudflare(network):
 def suggest_set_up():
     print(
         "Cloudflare authentication is not set or invalid. "
-        "See https://fds.getpagespeed.com/en/latest/cloudflare/")
+        "See https://fds.getpagespeed.com/cloudflare/")
     print('Type n to keep Cloudflare integration disabled, or enter token: ')
     cf_token = six.moves.input("Cloudflare token: ")
     if cf_token and 'n' != cf_token.lower():
