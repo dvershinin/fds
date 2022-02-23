@@ -1,31 +1,150 @@
 version: 2.1
-parameters:
-  run_workflow_setup:
-    default: true
-    type: boolean
-# this allows you to use CircleCI's dynamic configuration feature
-setup: true
 
-# the continuation orb is required in order to use dynamic configuration
-orbs:
-  continuation: circleci/continuation@0.1.2
-
-# our defined job, and its steps
+executors:
+  deploy:
+    parameters:
+      dist:
+        type: string
+    docker:
+      - image: kroniak/ssh-client
+    working_directory: /output
+    environment:
+      DISTRO: << parameters.dist >>
+  rpmbuilder:
+    parameters:
+      dist:
+        type: string
+      rpmlint:
+        type: integer
+        default: 1
+    docker:
+      - image: getpagespeed/rpmbuilder:<< parameters.dist >>
+    working_directory: /sources
+    environment:
+      RPMLINT: << parameters.rpmlint >>
 jobs:
-  setup:
-    executor: continuation/default
+  build:
+    parameters:
+      dist:
+        description: "The dist tag of OS to build for"
+        type: string
+    resource_class: small
+    executor:
+      name: rpmbuilder
+      dist: << parameters.dist >>
     steps:
-      - checkout # checkout code
-      - run: # run a command
-          name: Generate config
-          command: |
-            curl "https://raw.githubusercontent.com/GetPageSpeed/buildstrap/main/generated_config_self.yml" -o .circleci/generated_config.yml
-      - continuation/continue:
-          configuration_path: .circleci/generated_config.yml # use newly generated config to continue
-
-# our single workflow, that triggers the setup job defined above
+      - checkout
+      - run:
+          name: "Run the build itself: this will do rpmlint and check RPMs existence among other things."
+          command: ./utils/version-from-tag.sh && build
+      - persist_to_workspace:
+          root: /output
+          paths:
+            - "*.rpm"
+  deploy:
+    parameters:
+      dist:
+        description: "The dist tag of OS to deploy for"
+        type: string
+    executor:
+      name: deploy
+      dist: << parameters.dist >>
+    steps:
+      - attach_workspace:
+          at: /output
+      - add_ssh_keys:
+          fingerprints:
+            - "8c:a4:dd:2c:47:4c:63:aa:90:0b:e0:d6:15:be:87:82"
+      - run:
+          name: "Ensure project specific upload directory to avoid deploy collisions"
+          command: >
+            ssh -o StrictHostKeyChecking=no
+            $GPS_BUILD_USER@$GPS_BUILD_SERVER
+            "mkdir -p ~/incoming/$CIRCLE_PROJECT_REPONAME/$DISTRO"
+      - run:
+          name: "Deploy all RPMs to GetPageSpeed repo."
+          command: >
+            scp -o StrictHostKeyChecking=no -q -r *.rpm
+            $GPS_BUILD_USER@$GPS_BUILD_SERVER:~/incoming/$CIRCLE_PROJECT_REPONAME/$DISTRO/
+      - run:
+          name: "Trigger Deploy Hook."
+          command: >
+            ssh -o StrictHostKeyChecking=no -q
+            $GPS_BUILD_USER@$GPS_BUILD_SERVER
+            "nohup ~/scripts/incoming.sh $CIRCLE_PROJECT_REPONAME/$DISTRO/ > ~/incoming/$CIRCLE_PROJECT_REPONAME/$DISTRO/process.log 2>&1&"
 workflows:
-  setup:
-    when: << pipeline.parameters.run_workflow_setup >>
+  build-deploy-amzn2:
     jobs:
-      - setup
+    - build:
+        dist: amzn2
+        filters:
+          tags: {only: /.*/}
+        name: build-amzn2
+    - deploy:
+        context: org-global
+        dist: amzn2
+        filters:
+          branches: {ignore: /.*/}
+          tags: {only: /^v.*/}
+        name: deploy-amzn2
+        requires: [build-amzn2]
+  build-deploy-el7:
+    jobs:
+    - build:
+        dist: el7
+        filters:
+          tags: {only: /.*/}
+        name: build-el7
+    - deploy:
+        context: org-global
+        dist: el7
+        filters:
+          branches: {ignore: /.*/}
+          tags: {only: /^v.*/}
+        name: deploy-el7
+        requires: [build-el7]
+  build-deploy-el8:
+    jobs:
+    - build:
+        dist: el8
+        filters:
+          tags: {only: /.*/}
+        name: build-el8
+    - deploy:
+        context: org-global
+        dist: el8
+        filters:
+          branches: {ignore: /.*/}
+          tags: {only: /^v.*/}
+        name: deploy-el8
+        requires: [build-el8]
+  build-deploy-fc34:
+    jobs:
+    - build:
+        dist: fc34
+        filters:
+          tags: {only: /.*/}
+        name: build-fc34
+    - deploy:
+        context: org-global
+        dist: fc34
+        filters:
+          branches: {ignore: /.*/}
+          tags: {only: /^v.*/}
+        name: deploy-fc34
+        requires: [build-fc34]
+  build-deploy-fc35:
+    jobs:
+    - build:
+        dist: fc35
+        filters:
+          tags: {only: /.*/}
+        name: build-fc35
+    - deploy:
+        context: org-global
+        dist: fc35
+        filters:
+          branches: {ignore: /.*/}
+          tags: {only: /^v.*/}
+        name: deploy-fc35
+        requires: [build-fc35]
