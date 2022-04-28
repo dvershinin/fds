@@ -10,7 +10,7 @@ import six
 from .Countries import Countries
 from .FirewallWrapper import FirewallWrapper
 from .__about__ import __version__
-from .config import action_config
+from .config_funcs import action_config
 
 
 def commandline_arg(bytestring):

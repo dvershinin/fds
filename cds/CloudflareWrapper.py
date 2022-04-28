@@ -122,9 +122,7 @@ class CloudflareWrapper(CloudFlare):
             log.info('Skipped block in Cloudflare as it was not set up. Run fds config?')
             return
         nets = network_for_cloudflare(ip)
-        nets_len = len(nets)
-        if nets_len > 1:
-            log.info('Converted supplied network into {} entries for Cloudflare'.format(nets_len))
+        # do not try to len(nets) as they may be not countable iterator!
         for a in self.all_accounts:
             for n in nets:
                 log.info('Blocking {} in Cloudflare account {}'.format(ip, a['name']))
