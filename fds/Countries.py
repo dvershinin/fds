@@ -5,12 +5,12 @@ import os
 
 import six
 from six import add_metaclass
+
 from .Country import Country
 
 
 class Singleton(type):
     _instances = {}
-
 
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
@@ -40,7 +40,6 @@ class Countries(object):
                 country = Country(commonName, c)
                 self.countries[commonName] = country
                 self.names_by_code[c['cca2'].lower()] = commonName
-
 
     def __iter__(self):
         return six.itervalues(self.countries)
@@ -84,4 +83,3 @@ class Countries(object):
     def print_all(self):
         for c in self.countries:
             print(c)
-

@@ -1,9 +1,9 @@
 from __future__ import unicode_literals
+
 from builtins import chr
 
 
 class Country:
-
     OFFSET = 127462 - ord('A')
 
     def getFlag(self):
@@ -11,7 +11,6 @@ class Country:
         if code:
             return chr(ord(code[0]) + Country.OFFSET) + chr(ord(code[1]) + Country.OFFSET)
         return False
-
 
     def __init__(self, name, data={}):
         self.name = name
@@ -28,7 +27,6 @@ Name: {}
 TLD: {}
         """.format(self.name, self.data['tld'])
         return out
-
 
     def getNation(self):
         nationOverrides = {

@@ -1,11 +1,12 @@
+import logging as log  # for verbose output
 import os
+from os.path import expanduser, exists, dirname
 
 import six
-from os.path import expanduser, exists, dirname
 from CloudFlare import CloudFlare
 from CloudFlare.exceptions import CloudFlareAPIError
-import logging as log  # for verbose output
 from netaddr import IPNetwork, IPAddress
+
 # long story short, "configparser" Python 2 backport RPM package is no good because it strips init py
 try:
     # Python 3
@@ -151,7 +152,6 @@ class CloudflareWrapper(CloudFlare):
                         pass
                     else:
                         raise e
-
 
     def set_country_access_rule(self, country, mode, comment='fds'):
         """

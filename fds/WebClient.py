@@ -1,10 +1,12 @@
 from __future__ import unicode_literals
 
+import logging as log
+
 import requests
 from cachecontrol import CacheControl
 from cachecontrol.caches import FileCache
 from tqdm import tqdm
-import logging as log
+
 from .__about__ import __version__
 
 
@@ -40,7 +42,6 @@ class WebClient:
         s = requests.session()
         s.headers.update({'User-Agent': 'fds/{}'.format(__version__)})
         self.cs = CacheControl(s, cache=FileCache('/var/cache/fds'))
-
 
     def download_file(self, url, local_filename=None, display_name=None,
                       return_type='filename'):
@@ -82,7 +83,6 @@ class WebClient:
 
         return contents.decode("utf-8") if return_type == 'contents' else local_filename
 
-
     def get_country_networks(self, country):
         # r = self.cs.get(
         #     'https://www.ipdeny.com/ipblocks/data/aggregated/{}-aggregated.zone'.format(
@@ -98,7 +98,6 @@ class WebClient:
             return_type='contents'
         )
         return content.splitlines()
-
 
     def get_tor_exits(self, family=4):
         url = 'https://lists.fissionrelays.net/tor/exits-ipv{}.txt'.format(family)

@@ -15,7 +15,7 @@ sudo systemctl restart firewalld
 ```
 
 To ensure this does not happen, either:
- 
+
 * wait FirewallD to fix it
 * ensure that you do not attempt to block an IP/network that may be a subset of a network you have already blocked
 * optimally, install aggregation packages (see below)

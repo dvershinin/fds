@@ -1,8 +1,9 @@
 from __future__ import unicode_literals
 
-import os
-from appdirs import user_config_dir
 import configparser
+import os
+
+from appdirs import user_config_dir
 
 
 def is_root():
@@ -18,14 +19,12 @@ def get_config_path():
 class Config(configparser.ConfigParser):
     __instance = None
 
-
     @staticmethod
     def getInstance():
         """ Static access method. """
         if Config.__instance is None:
             Config()
         return Config.__instance
-
 
     def __init__(self):
         """ Virtually private constructor. """

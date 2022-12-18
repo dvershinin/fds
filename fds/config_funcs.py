@@ -1,6 +1,7 @@
-from cds.CloudflareWrapper import suggest_set_up, cf_config_filename
-from .FirewallWrapper import FirewallWrapper
 import logging as log
+
+from cds.CloudflareWrapper import suggest_set_up
+from .FirewallWrapper import FirewallWrapper
 
 
 def open_web_if_webserver_running():

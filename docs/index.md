@@ -1,16 +1,19 @@
 # fds
- 
+
 The go-to **F**irewallD CLI app that **d**oesn't **s**uck.
 
 ## What is `fds`?
- 
-Firewall management is often a task that you do once at the time of setting up a server.
-But if you're maintaining a server like a PRO, you are monitoring logs, and blocking malicious users as they come, on a *regular basis*.
 
-FirewallD is a great firewall software. It has the concepts of zones, sources, and supports IP sets. 
-However, its client app, `firewall-cmd` is far from user-friendly when it comes to blocking and managing blocked IP addresses.
-Furthermore, if you also use Cloudflare firewall, you also want to propagate your blocked IP addresses to it for best protection.
- 
+Firewall management is often a task that you do once at the time of setting up a server.
+But if you're maintaining a server like a PRO, you are monitoring logs, and blocking malicious users as they come, on a
+*regular basis*.
+
+FirewallD is a great firewall software. It has the concepts of zones, sources, and supports IP sets.
+However, its client app, `firewall-cmd` is far from user-friendly when it comes to blocking and managing blocked IP
+addresses.
+Furthermore, if you also use Cloudflare firewall, you also want to propagate your blocked IP addresses to it for best
+protection.
+
 `fds` is the CLI client for FirewallD/Cloudflare, that you'll love to use any day.
 It is an alternative, client for FirewallD.
 
@@ -32,10 +35,9 @@ sudo yum -y install https://extras.getpagespeed.com/release-latest.rpm
 sudo yum -y install fds
 ```
 
+## What `fds` can do
 
-## What `fds` can do 
-
-The `fds` is utility program for users of FirewallD. It is a helper to easily perform day-to-day 
+The `fds` is utility program for users of FirewallD. It is a helper to easily perform day-to-day
 firewall tasks:
 
 * block users of Tor
@@ -45,10 +47,10 @@ firewall tasks:
 
 ### Integrations
 
-By default, `fds` only operates with FirewallD. 
+By default, `fds` only operates with FirewallD.
 
 To enable [Cloudflare integration](cloudflare.md), run:
- 
+
     fds config 
 
 ## Block Tor
@@ -101,11 +103,12 @@ environment variable, e.g.:
 REMOTE_ADDR=1.2.3.4 IPSET=honeypot fds block
 ```
 
-The above command will block the IP `1.2.3.4` by adding it into honeypot*4* IP set, which will be 
+The above command will block the IP `1.2.3.4` by adding it into honeypot*4* IP set, which will be
 created automatically, if it didn't exist.
 
 This is useful when invoking `fds` as a CGI script for auto-blocking bad actors upon access.
-See [NGINX honeypot – the easiest and fastest way to block bots!](https://www.getpagespeed.com/server-setup/security/nginx-honeypot-the-easiest-and-fastest-way-to-block-bots) for more details.
+See [NGINX honeypot – the easiest and fastest way to block bots!](https://www.getpagespeed.com/server-setup/security/nginx-honeypot-the-easiest-and-fastest-way-to-block-bots)
+for more details.
 
 When `fds` detects these variables, it run in a CGI mode, meaning that its output will include HTTP headers, e.g.:
 
@@ -139,7 +142,7 @@ in the end.
 
 ## List all blocked networks and countries
 
-The following allows to easily see what is blocked: 
+The following allows to easily see what is blocked:
 
 ```bash
 fds list blocked
@@ -169,14 +172,17 @@ So there is no need to do anything to ensure a country (or Tor) stays blocked.
 
 ### Planned
 
-* declare a CDN of servers and push blocking commands across those server from one place (ansible-like), useful for dynamic blocking
-from the central server (honeypot)
-* drop outbound connections (shortcut to https://cogitantium.blogspot.com/2017/06/how-to-drop-outbound-connections-with.html) 
+* declare a CDN of servers and push blocking commands across those server from one place (ansible-like), useful for
+  dynamic blocking
+  from the central server (honeypot)
+* drop outbound connections (shortcut
+  to https://cogitantium.blogspot.com/2017/06/how-to-drop-outbound-connections-with.html)
 
 See contributing guide for development setup (if not using packages).
 
 ## Files
 
-* not in use: `/etc/fds.conf` (info on currently blocked countries or otherwise small data sets suitable for a single config file)
+* not in use: `/etc/fds.conf` (info on currently blocked countries or otherwise small data sets suitable for a single
+  config file)
 * not in use: `/var/lib/fds`: zone files, (state data) + (info on what is currently blocked) (???)
 * `/var/cache/fds`: cachecontrol cache

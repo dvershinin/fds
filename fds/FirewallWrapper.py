@@ -69,7 +69,6 @@ class FirewallWrapper:
         if not self.config:
             log.warning('FirewallD is not running attempting to start...')
             import subprocess
-            import time
             subprocess.check_output(['systemctl', 'enable', '--now', 'firewalld'])
             # firewall-cmd synchronously waits for FirewallD startup
             subprocess.check_output(['firewall-cmd', '--state'])
@@ -157,7 +156,6 @@ class FirewallWrapper:
         return drop_zone.addSource('ipset:{}'.format(
             ipset.get_property('name')
         ))
-
 
     @do_maybe_already_enabled
     def add_service(self, name, zone='public'):
@@ -373,4 +371,3 @@ class FirewallWrapper:
         self.ensure_entry_not_in_ipset(block_ipset, ip_or_country_name)
         log.info('Reloading FirewallD to apply permanent configuration')
         self.fw.reload()
-

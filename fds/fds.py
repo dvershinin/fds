@@ -5,6 +5,7 @@ import ipaddress
 import logging as log  # for verbose output
 import os
 import sys
+
 import six
 
 from .Countries import Countries
@@ -179,7 +180,6 @@ def main():
                                         choices=['all', 'networks'],
                                         help='Kind of blocked entries to be listed')
 
-
     list_countries_subparser = list_subparsers.add_parser('countries', help='List countries')
 
     list_continents_subparser = list_subparsers.add_parser('continents', help='List continents')
@@ -188,8 +188,6 @@ def main():
 
     parser.add_argument('--version', action='version',
                         version='%(prog)s {version}'.format(version=__version__))
-
-
 
     args = parser.parse_args()
 
