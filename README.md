@@ -76,9 +76,6 @@ sudo yum -y install python2-aggregate6
 sudo yum -y install python3-aggregate6
 ```
 
-
-
-
 ## What `fds` can do 
 
 The `fds` is utility program for users of FirewallD. It is a helper to easily perform day-to-day 
@@ -206,6 +203,7 @@ So there is no need to do anything to ensure a country (or Tor) stays blocked.
 
 ### Planned
 
+* integration with [`trusted-lists`](https://github.com/dvershinin/trusted-lists) IP sets for easy whitelisting
 * declare a CDN of servers and push blocking commands across those server from one place (ansible-like), useful for dynamic blocking
 from the central server (honeypot)
 * drop outbound connections (shortcut to https://cogitantium.blogspot.com/2017/06/how-to-drop-outbound-connections-with.html) 
