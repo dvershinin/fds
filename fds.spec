@@ -86,12 +86,13 @@ Requires:       python2-setuptools
 Requires:       python2-firewall
 Requires:       python2-six
 Requires:       python-netaddr
+Requires:       python-ipaddress
 Requires:       python2-tqdm
 Requires:       python2-cloudflare >= 2.7.1
 # will bring in msgpack and lockfile dependencies:
 Requires:       python2-CacheControl
 %{?python_provide:%python_provide python2-%{name}}
- 
+
 %description -n python2-%{name}
 Python module for %{name}
 %endif
@@ -122,12 +123,15 @@ Python %{python3_pkgversion} module for %{name}
 sed -i '1i| %{name}(1)\n| %{author}\n| July 2019\n\n' README.md
 # we package CacheControl with the fix so we do not need newer requests library:
 sed -i 's@requests>=2.6.1@requests@' setup.py
+# we do not need ipaddress module on Python 3, it's built-in
+sed -i '/ipaddress;/d' setup.py
+
 
 %check
 # mock does not have networking on by default.
 # py.test -v
 
- 
+
 %build
 %if %{with python2}
 %py2_build
@@ -164,7 +168,7 @@ if [ $1 -eq 0 ]; then
     %{__rm} -rf %{_localstatedir}/cache/%{name}
 fi
 
- 
+
 %files
 %license LICENSE
 %doc README.md
