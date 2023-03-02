@@ -1,4 +1,4 @@
-%if 0%{?amzn} >= 2
+%if 0%{?amzn} >= 2 || 0%{?suse_version} >= 1315
 %global python3_pkgversion 3
 %endif
 
