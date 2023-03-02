@@ -58,6 +58,8 @@ setup(
         "Operating System :: OS Independent",
         "Topic :: Software Development",
         "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3.6"
+        "Programming Language :: Python :: 3.6",
+        "Topic :: System :: Networking :: Firewalls",
+        "Operating System :: POSIX :: Linux"
     ],
 )
