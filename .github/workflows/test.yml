@@ -1,7 +1,10 @@
 name: Super-Linter
 
 # Run this workflow every time a new commit pushed to your repository
-on: push
+on:
+  push:
+    branches:
+      - none
 
 jobs:
   # Set the job key. The key is displayed as the job name
@@ -49,7 +52,7 @@ jobs:
       - name: Test country block
         run: |
           sudo ./venv/bin/python ./venv/bin/fds block China
-  
+
       - name: Test cron for sets updating
         run: |
           sudo ./venv/bin/python ./venv/bin/fds cron
@@ -57,4 +60,3 @@ jobs:
       - name: Unblock a country
         run: |
           sudo ./venv/bin/python ./venv/bin/fds unblock China
-
