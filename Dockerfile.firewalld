@@ -1,4 +1,4 @@
-FROM centos:8
+FROM rockylinux:9
 
 # Install required packages
 RUN yum install -y firewalld python3 python3-pip
