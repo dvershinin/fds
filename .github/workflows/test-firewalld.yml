@@ -22,4 +22,4 @@ jobs:
 
     - name: Run tests
       run: |
-        docker run --privileged --rm my-firewalld-image bash -c "./firewalld-tests.sh"
+        docker run --privileged --rm v /sys/fs/cgroup:/sys/fs/cgroup:ro -d my-firewalld-image bash -c "./firewalld-tests.sh"
