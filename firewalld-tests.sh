@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -x
 # Start the Firewalld service
 systemctl start firewalld
 sleep 5
@@ -12,5 +12,4 @@ else
   exit 1
 fi
 
-# Add your Firewalld tests here, such as adding or removing rules, zones, or services
-# Example: firewall-cmd --add-service=http --zone=public --permanent
+fds block 1.2.3.4
