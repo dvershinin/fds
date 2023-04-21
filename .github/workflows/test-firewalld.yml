@@ -1,0 +1,25 @@
+name: Test Firewalld
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-firewalld:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Build Docker image
+      run: |
+        docker build -t my-firewalld-image -f Dockerfile.firewalld .
+
+    - name: Run tests
+      run: |
+        docker run --privileged --rm -it my-firewalld-image bash -c "firewalld-tests.sh"

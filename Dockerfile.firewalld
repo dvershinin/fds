@@ -1,0 +1,9 @@
+FROM centos:8
+
+RUN yum install -y firewalld
+RUN systemctl enable firewalld
+
+COPY firewalld-tests.sh /firewalld-tests.sh
+RUN chmod +x /firewalld-tests.sh
+
+CMD ["/sbin/init"]
