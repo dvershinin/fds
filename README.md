@@ -27,7 +27,7 @@ fds block 1.2.3.4
 
 It makes the task of managing your FirewallD easy and human-friendly.
 
-## Installation on CentOS/RHEL 7, 8, 9 and Fedora 33, 34, 35, 36
+## Installation on CentOS/RHEL, Fedora and Amazon Linux
 
 First, install RPM repository configuration:
 
@@ -66,13 +66,13 @@ The subscription ships with packages for IP prefixes' aggregation.
 
 So it's highly recommended to also run the following if you are a subscriber:
 
-### CentOS/RHEL 7
+### CentOS/RHEL 7 only
 
 ```bash
 sudo yum -y install python2-aggregate6
 ```
 
-### CentOS/RHEL 8
+### CentOS/RHEL 8+, Fedora and Amazon Linux
 
 ```bash
 sudo yum -y install python3-aggregate6
