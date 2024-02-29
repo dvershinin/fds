@@ -37,14 +37,16 @@ def block_region(region):
 
     """
     countries = Countries()
+    fw = FirewallWrapper()  # Create a single instance outside the loop
     for country in countries:
         if country.data['region'] == region:
-            action_block(country.name, reload=False)
+            action_block(country.name, reload=False, fw=fw)
 
 
-def action_block(ip_or_country_name, ipset_name=None, reload=True):
+def action_block(ip_or_country_name, ipset_name=None, reload=True, fw=None):
     # FD
-    fw = FirewallWrapper()
+    if fw is None:
+        fw = FirewallWrapper()
     # CF
     from cds.CloudflareWrapper import CloudflareWrapper
     cw = CloudflareWrapper()
