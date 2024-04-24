@@ -148,21 +148,6 @@ workflows:
           tags: {only: /^v.*/}
         name: deploy-el9
         requires: [build-el9]
-  build-deploy-fc38:
-    jobs:
-    - build:
-        dist: fc38
-        filters:
-          tags: {only: /.*/}
-        name: build-fc38
-    - deploy:
-        context: org-global
-        dist: fc38
-        filters:
-          branches: {ignore: /.*/}
-          tags: {only: /^v.*/}
-        name: deploy-fc38
-        requires: [build-fc38]
   build-deploy-fc39:
     jobs:
     - build:
@@ -193,6 +178,21 @@ workflows:
           tags: {only: /^v.*/}
         name: deploy-fc40
         requires: [build-fc40]
+  build-deploy-fc41:
+    jobs:
+    - build:
+        dist: fc41
+        filters:
+          tags: {only: /.*/}
+        name: build-fc41
+    - deploy:
+        context: org-global
+        dist: fc41
+        filters:
+          branches: {ignore: /.*/}
+          tags: {only: /^v.*/}
+        name: deploy-fc41
+        requires: [build-fc41]
   build-deploy-sles15:
     jobs:
     - build:
