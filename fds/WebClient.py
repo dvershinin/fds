@@ -100,12 +100,23 @@ class WebClient:
         return content.splitlines()
 
     def get_tor_exits(self, family=4):
-        url = 'https://lists.fissionrelays.net/tor/exits-ipv{}.txt'.format(family)
-        log.debug('Downloading {}'.format(url))
+        """Get a list of Tor exit nodes."""
+        # Use torproject.org for IPv4 list
+        url = 'https://check.torproject.org/torbulkexitlist'
+        if family == 6:
+            # torproject.org does not provide IPv6 list
+            # https://gitlab.torproject.org/tpo/core/tordnsel/-/issues/24034
+            url = 'https://openinternet.io/tor/tor-exit-list.txt'
+
+        log.debug('Downloading IPv%s exit nodes list from %s', family, url)
         content = self.download_file(
             url,
             display_name='Tor IPv{} exits list'.format(family),
             local_filename='/var/lib/fds/tor-{}.zone'.format(family),
             return_type='contents'
         )
-        return content.splitlines()
+        ips = content.splitlines()
+        # For IPv6 list, we need to remove IPv4 addresses and comments '#'
+        if family == 6:
+            ips = [ip for ip in ips if ':' in ip and not ip.startswith('#')]
+        return ips
