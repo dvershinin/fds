@@ -6,3 +6,4 @@ mkdocs-material
 mkdocstrings
 # markdown include:
 markdown-include
+zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability
