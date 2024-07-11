@@ -27,6 +27,7 @@ jobs:
 
         # Wait for the container to be fully initialized
         sleep 10
+        docker logs firewalld-container
 
         # Run tests inside the container
         docker exec firewalld-container /bin/bash -c "./firewalld-tests.sh"
