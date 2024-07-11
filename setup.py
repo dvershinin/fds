@@ -18,7 +18,7 @@ install_requires = [
     # required for cf.user.tokens.verify.get() and cf.accounts.get()
     # neither endpoints are available in CentOS 7, thus we rebuild pkg from
     # https://github.com/dvershinin/python-cloudflare/releases/tag/2.7.1
-    'cloudflare>=2.7.1',
+    'cloudflare>=2.7.1,<3',
     'ipaddress; python_version < "3.0.0"'
 ]
 tests_requires = ["pytest", "flake8", "faker"]
