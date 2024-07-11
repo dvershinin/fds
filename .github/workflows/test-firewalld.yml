@@ -29,4 +29,4 @@ jobs:
         sleep 10
 
         # Run tests inside the container
-        docker exec -it firewalld-container /bin/bash -c "./firewalld-tests.sh"
+        docker exec firewalld-container /bin/bash -c "./firewalld-tests.sh"
