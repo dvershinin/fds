@@ -31,6 +31,12 @@ RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == system
     rm -f /lib/systemd/system/anaconda.target.wants/*; \
     systemctl set-default multi-user.target
 
+# Override systemd defaults
+RUN mkdir -p /etc/systemd/system/service.d
+RUN echo '[Service]' > /etc/systemd/system/service.d/override.conf
+RUN echo 'ExecStart=' >> /etc/systemd/system/service.d/override.conf
+RUN echo 'ExecStart=/usr/lib/systemd/systemd' >> /etc/systemd/system/service.d/override.conf
+
 VOLUME [ "/sys/fs/cgroup" ]
 
 CMD ["/sbin/init"]

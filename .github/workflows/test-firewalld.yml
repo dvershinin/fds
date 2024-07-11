@@ -28,6 +28,7 @@ jobs:
         # Wait for the container to be fully initialized
         sleep 10
         # Check if the container is running
+        # Capture and print logs if the container is not running
         if [ "$(sudo docker inspect -f '{{.State.Running}}' firewalld-container)" != "true" ]; then
           echo "Container failed to start. Logs:"
           sudo docker logs firewalld-container
