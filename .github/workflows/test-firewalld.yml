@@ -27,7 +27,13 @@ jobs:
 
         # Wait for the container to be fully initialized
         sleep 10
-        docker logs firewalld-container
+        # Check if the container is running
+        if [ "$(sudo docker inspect -f '{{.State.Running}}' firewalld-container)" != "true" ]; then
+          echo "Container failed to start. Logs:"
+          sudo docker logs firewalld-container
+          sudo docker inspect firewalld-container
+          exit 1
+        fi
 
         # Run tests inside the container
         docker exec firewalld-container /bin/bash -c "./firewalld-tests.sh"
