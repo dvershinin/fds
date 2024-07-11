@@ -22,4 +22,11 @@ jobs:
 
     - name: Run tests
       run: |
-        docker run --init --privileged --rm -v /sys/fs/cgroup:/sys/fs/cgroup:ro my-firewalld-image bash -c "./firewalld-tests.sh"
+        # Run the container with systemd initialization
+        docker run --privileged --name firewalld-container -d -v /sys/fs/cgroup:/sys/fs/cgroup:ro my-firewalld-image /usr/sbin/init
+
+        # Wait for the container to be fully initialized
+        sleep 10
+
+        # Run tests inside the container
+        docker exec -it firewalld-container /bin/bash -c "./firewalld-tests.sh"
