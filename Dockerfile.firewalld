@@ -1,9 +1,9 @@
 FROM rockylinux:9
 
 # Install systemd and firewalld
-RUN yum install -y systemd firewalld python3-pip git \
+RUN yum install -y systemd firewalld dbus python3-pip git \
     && yum clean all \
-    && systemctl enable firewalld
+    && systemctl enable firewalld && systemctl enable dbus
 
 # Set up the working directory
 WORKDIR /app
