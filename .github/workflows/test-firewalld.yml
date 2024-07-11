@@ -23,7 +23,7 @@ jobs:
     - name: Run tests
       run: |
         # Run the container with systemd initialization
-        docker run --init --privileged --name firewalld-container -d -v /sys/fs/cgroup:/sys/fs/cgroup:ro my-firewalld-image /usr/sbin/init
+        docker run -d --privileged -h test --privileged=true --name firewalld-container my-firewalld-image /usr/sbin/init
 
         # Wait for the container to be fully initialized
         sleep 10
