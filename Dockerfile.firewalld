@@ -1,7 +1,7 @@
 FROM rockylinux:9
 
 # Install systemd and firewalld
-RUN yum install -y systemd firewalld dbus python3-pip git tini \
+RUN yum install -y systemd firewalld dbus python3-pip git \
     && yum clean all \
     && systemctl enable firewalld
 
@@ -32,7 +32,5 @@ RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == system
     systemctl set-default multi-user.target
 
 VOLUME [ "/sys/fs/cgroup" ]
-
-ENTRYPOINT ["/usr/bin/tini", "--"]
 
 CMD ["/sbin/init"]
