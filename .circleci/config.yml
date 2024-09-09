@@ -28,7 +28,11 @@ jobs:
       dist:
         description: "The dist tag of OS to build for"
         type: string
-    resource_class: small
+      resource_class:
+        description: "The resource class to use for the build"
+        type: string
+        default: "small"
+    resource_class: << parameters.resource_class >>
     executor:
       name: rpmbuilder
       dist: << parameters.dist >>
@@ -73,123 +77,251 @@ jobs:
             $GPS_BUILD_USER@$GPS_BUILD_SERVER
             "nohup ~/scripts/incoming.sh $CIRCLE_PROJECT_REPONAME/$DISTRO/ > ~/incoming/$CIRCLE_PROJECT_REPONAME/$DISTRO/process.log 2>&1&"
 workflows:
-  build-deploy-amzn2:
+  build-deploy-amzn2-aarch64:
     jobs:
     - build:
         dist: amzn2
         filters:
           tags: {only: /.*/}
-        name: build-amzn2
+        name: build-amzn2-aarch64
+        resource_class: arm.medium
     - deploy:
         context: org-global
         dist: amzn2
         filters:
           branches: {ignore: /.*/}
           tags: {only: /^v.*/}
-        name: deploy-amzn2
-        requires: [build-amzn2]
-  build-deploy-amzn2023:
+        name: deploy-amzn2-aarch64
+        requires: [build-amzn2-aarch64]
+  build-deploy-amzn2-x86_64:
+    jobs:
+    - build:
+        dist: amzn2
+        filters:
+          tags: {only: /.*/}
+        name: build-amzn2-x86_64
+    - deploy:
+        context: org-global
+        dist: amzn2
+        filters:
+          branches: {ignore: /.*/}
+          tags: {only: /^v.*/}
+        name: deploy-amzn2-x86_64
+        requires: [build-amzn2-x86_64]
+  build-deploy-amzn2023-aarch64:
     jobs:
     - build:
         dist: amzn2023
         filters:
           tags: {only: /.*/}
-        name: build-amzn2023
+        name: build-amzn2023-aarch64
+        resource_class: arm.medium
     - deploy:
         context: org-global
         dist: amzn2023
         filters:
           branches: {ignore: /.*/}
           tags: {only: /^v.*/}
-        name: deploy-amzn2023
-        requires: [build-amzn2023]
-  build-deploy-el7:
+        name: deploy-amzn2023-aarch64
+        requires: [build-amzn2023-aarch64]
+  build-deploy-amzn2023-x86_64:
+    jobs:
+    - build:
+        dist: amzn2023
+        filters:
+          tags: {only: /.*/}
+        name: build-amzn2023-x86_64
+    - deploy:
+        context: org-global
+        dist: amzn2023
+        filters:
+          branches: {ignore: /.*/}
+          tags: {only: /^v.*/}
+        name: deploy-amzn2023-x86_64
+        requires: [build-amzn2023-x86_64]
+  build-deploy-el7-aarch64:
     jobs:
     - build:
         dist: el7
         filters:
           tags: {only: /.*/}
-        name: build-el7
+        name: build-el7-aarch64
+        resource_class: arm.medium
     - deploy:
         context: org-global
         dist: el7
         filters:
           branches: {ignore: /.*/}
           tags: {only: /^v.*/}
-        name: deploy-el7
-        requires: [build-el7]
-  build-deploy-el8:
+        name: deploy-el7-aarch64
+        requires: [build-el7-aarch64]
+  build-deploy-el7-x86_64:
+    jobs:
+    - build:
+        dist: el7
+        filters:
+          tags: {only: /.*/}
+        name: build-el7-x86_64
+    - deploy:
+        context: org-global
+        dist: el7
+        filters:
+          branches: {ignore: /.*/}
+          tags: {only: /^v.*/}
+        name: deploy-el7-x86_64
+        requires: [build-el7-x86_64]
+  build-deploy-el8-aarch64:
     jobs:
     - build:
         dist: el8
         filters:
           tags: {only: /.*/}
-        name: build-el8
+        name: build-el8-aarch64
+        resource_class: arm.medium
     - deploy:
         context: org-global
         dist: el8
         filters:
           branches: {ignore: /.*/}
           tags: {only: /^v.*/}
-        name: deploy-el8
-        requires: [build-el8]
-  build-deploy-el9:
+        name: deploy-el8-aarch64
+        requires: [build-el8-aarch64]
+  build-deploy-el8-x86_64:
+    jobs:
+    - build:
+        dist: el8
+        filters:
+          tags: {only: /.*/}
+        name: build-el8-x86_64
+    - deploy:
+        context: org-global
+        dist: el8
+        filters:
+          branches: {ignore: /.*/}
+          tags: {only: /^v.*/}
+        name: deploy-el8-x86_64
+        requires: [build-el8-x86_64]
+  build-deploy-el9-aarch64:
     jobs:
     - build:
         dist: el9
         filters:
           tags: {only: /.*/}
-        name: build-el9
+        name: build-el9-aarch64
+        resource_class: arm.medium
     - deploy:
         context: org-global
         dist: el9
         filters:
           branches: {ignore: /.*/}
           tags: {only: /^v.*/}
-        name: deploy-el9
-        requires: [build-el9]
-  build-deploy-fc39:
+        name: deploy-el9-aarch64
+        requires: [build-el9-aarch64]
+  build-deploy-el9-x86_64:
+    jobs:
+    - build:
+        dist: el9
+        filters:
+          tags: {only: /.*/}
+        name: build-el9-x86_64
+    - deploy:
+        context: org-global
+        dist: el9
+        filters:
+          branches: {ignore: /.*/}
+          tags: {only: /^v.*/}
+        name: deploy-el9-x86_64
+        requires: [build-el9-x86_64]
+  build-deploy-fc39-aarch64:
     jobs:
     - build:
         dist: fc39
         filters:
           tags: {only: /.*/}
-        name: build-fc39
+        name: build-fc39-aarch64
+        resource_class: arm.medium
     - deploy:
         context: org-global
         dist: fc39
         filters:
           branches: {ignore: /.*/}
           tags: {only: /^v.*/}
-        name: deploy-fc39
-        requires: [build-fc39]
-  build-deploy-fc40:
+        name: deploy-fc39-aarch64
+        requires: [build-fc39-aarch64]
+  build-deploy-fc39-x86_64:
+    jobs:
+    - build:
+        dist: fc39
+        filters:
+          tags: {only: /.*/}
+        name: build-fc39-x86_64
+    - deploy:
+        context: org-global
+        dist: fc39
+        filters:
+          branches: {ignore: /.*/}
+          tags: {only: /^v.*/}
+        name: deploy-fc39-x86_64
+        requires: [build-fc39-x86_64]
+  build-deploy-fc40-aarch64:
     jobs:
     - build:
         dist: fc40
         filters:
           tags: {only: /.*/}
-        name: build-fc40
+        name: build-fc40-aarch64
+        resource_class: arm.medium
     - deploy:
         context: org-global
         dist: fc40
         filters:
           branches: {ignore: /.*/}
           tags: {only: /^v.*/}
-        name: deploy-fc40
-        requires: [build-fc40]
-  build-deploy-sles15:
+        name: deploy-fc40-aarch64
+        requires: [build-fc40-aarch64]
+  build-deploy-fc40-x86_64:
+    jobs:
+    - build:
+        dist: fc40
+        filters:
+          tags: {only: /.*/}
+        name: build-fc40-x86_64
+    - deploy:
+        context: org-global
+        dist: fc40
+        filters:
+          branches: {ignore: /.*/}
+          tags: {only: /^v.*/}
+        name: deploy-fc40-x86_64
+        requires: [build-fc40-x86_64]
+  build-deploy-sles15-aarch64:
     jobs:
     - build:
         dist: sles15
         filters:
           tags: {only: /.*/}
-        name: build-sles15
+        name: build-sles15-aarch64
+        resource_class: arm.medium
     - deploy:
         context: org-global
         dist: sles15
         filters:
           branches: {ignore: /.*/}
           tags: {only: /^v.*/}
-        name: deploy-sles15
-        requires: [build-sles15]
+        name: deploy-sles15-aarch64
+        requires: [build-sles15-aarch64]
+  build-deploy-sles15-x86_64:
+    jobs:
+    - build:
+        dist: sles15
+        filters:
+          tags: {only: /.*/}
+        name: build-sles15-x86_64
+    - deploy:
+        context: org-global
+        dist: sles15
+        filters:
+          branches: {ignore: /.*/}
+          tags: {only: /^v.*/}
+        name: deploy-sles15-x86_64
+        requires: [build-sles15-x86_64]
