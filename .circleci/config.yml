@@ -41,6 +41,17 @@ jobs:
       - run:
           name: "Run the build itself: this will do rpmlint and check RPMs existence among other things."
           command: ./utils/version-from-tag.sh && build
+      - run:
+          name: "Check for RPM files and halt if none exist"
+          command: |
+            set -x
+            if ls /output/*.rpm 1> /dev/null 2>&1; then
+              echo "RPM files found. Proceeding with persistence to workspace."
+            else
+              echo "No RPM files found. Halting the job."
+              curl --request POST --url https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel --header "Circle-Token: ${CIRCLE_TOKEN}"
+              circleci-agent step halt
+            fi
       - persist_to_workspace:
           root: /output
           paths:
@@ -80,6 +91,7 @@ workflows:
   build-deploy-amzn2-aarch64:
     jobs:
     - build:
+        context: org-global
         dist: amzn2
         filters:
           tags: {only: /.*/}
@@ -96,6 +108,7 @@ workflows:
   build-deploy-amzn2-x86_64:
     jobs:
     - build:
+        context: org-global
         dist: amzn2
         filters:
           tags: {only: /.*/}
@@ -111,6 +124,7 @@ workflows:
   build-deploy-amzn2023-aarch64:
     jobs:
     - build:
+        context: org-global
         dist: amzn2023
         filters:
           tags: {only: /.*/}
@@ -127,6 +141,7 @@ workflows:
   build-deploy-amzn2023-x86_64:
     jobs:
     - build:
+        context: org-global
         dist: amzn2023
         filters:
           tags: {only: /.*/}
@@ -142,6 +157,7 @@ workflows:
   build-deploy-el7-aarch64:
     jobs:
     - build:
+        context: org-global
         dist: el7
         filters:
           tags: {only: /.*/}
@@ -158,6 +174,7 @@ workflows:
   build-deploy-el7-x86_64:
     jobs:
     - build:
+        context: org-global
         dist: el7
         filters:
           tags: {only: /.*/}
@@ -173,6 +190,7 @@ workflows:
   build-deploy-el8-aarch64:
     jobs:
     - build:
+        context: org-global
         dist: el8
         filters:
           tags: {only: /.*/}
@@ -189,6 +207,7 @@ workflows:
   build-deploy-el8-x86_64:
     jobs:
     - build:
+        context: org-global
         dist: el8
         filters:
           tags: {only: /.*/}
@@ -204,6 +223,7 @@ workflows:
   build-deploy-el9-aarch64:
     jobs:
     - build:
+        context: org-global
         dist: el9
         filters:
           tags: {only: /.*/}
@@ -220,6 +240,7 @@ workflows:
   build-deploy-el9-x86_64:
     jobs:
     - build:
+        context: org-global
         dist: el9
         filters:
           tags: {only: /.*/}
@@ -235,6 +256,7 @@ workflows:
   build-deploy-fc39-aarch64:
     jobs:
     - build:
+        context: org-global
         dist: fc39
         filters:
           tags: {only: /.*/}
@@ -251,6 +273,7 @@ workflows:
   build-deploy-fc39-x86_64:
     jobs:
     - build:
+        context: org-global
         dist: fc39
         filters:
           tags: {only: /.*/}
@@ -266,6 +289,7 @@ workflows:
   build-deploy-fc40-aarch64:
     jobs:
     - build:
+        context: org-global
         dist: fc40
         filters:
           tags: {only: /.*/}
@@ -282,6 +306,7 @@ workflows:
   build-deploy-fc40-x86_64:
     jobs:
     - build:
+        context: org-global
         dist: fc40
         filters:
           tags: {only: /.*/}
@@ -297,6 +322,7 @@ workflows:
   build-deploy-sles15-aarch64:
     jobs:
     - build:
+        context: org-global
         dist: sles15
         filters:
           tags: {only: /.*/}
@@ -313,6 +339,7 @@ workflows:
   build-deploy-sles15-x86_64:
     jobs:
     - build:
+        context: org-global
         dist: sles15
         filters:
           tags: {only: /.*/}
