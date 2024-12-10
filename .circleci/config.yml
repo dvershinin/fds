@@ -85,7 +85,7 @@ jobs:
             "mkdir -p ~/incoming/${CIRCLE_PROJECT_REPONAME}/${DISTRO}/${ARCH}/${CIRCLE_BRANCH}"
       - run:
           name: "Deploy all RPMs to GetPageSpeed repo."
-          command: >
+          command: |
             echo "Uploading RPMs..."
             ls -al
             echo "Target upload directory: ~/incoming/${CIRCLE_PROJECT_REPONAME}/${DISTRO}/${ARCH}/${CIRCLE_BRANCH}/"
