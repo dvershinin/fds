@@ -16,6 +16,10 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
+    - name: Set up Docker
+      run: |
+        docker run --detach --privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:rw --cgroupns=host eniocarboni/docker-rockylinux-systemd:latest
+
     - name: Build Docker image
       run: |
         docker build -t my-firewalld-image -f firewalld.Dockerfile .
