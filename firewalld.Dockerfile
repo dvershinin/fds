@@ -17,8 +17,8 @@ RUN echo "ref-names: HEAD -> master, tag: v0" > ".git_archival.txt"
 RUN pip3 install .
 
 # Copy the test script into the Docker image
-COPY firewalld-tests.sh tests/firewalld-tests.sh
-RUN chmod +x tests/firewalld-tests.sh
+COPY firewalld-tests.sh firewalld-tests.sh
+RUN chmod +x firewalld-tests.sh
 
 # Remove unnecessary systemd targets and set the default target to multi-user
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done); \
