@@ -1,9 +1,9 @@
 FROM eniocarboni/docker-rockylinux-systemd:latest
 
 ## Install systemd and firewalld
-#RUN yum install -y systemd firewalld dbus python3-pip git \
-#    && yum clean all \
-#    && systemctl enable firewalld
+RUN yum install -y systemd firewalld dbus python3-pip git \
+    && yum clean all \
+    && systemctl enable firewalld
 
 # Set up the working directory
 WORKDIR /app
