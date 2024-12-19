@@ -20,12 +20,4 @@ RUN pip3 install .
 COPY firewalld-tests.sh firewalld-tests.sh
 RUN chmod +x firewalld-tests.sh
 
-## Override systemd defaults
-#RUN mkdir -p /etc/systemd/system/service.d
-#RUN echo '[Service]' > /etc/systemd/system/service.d/override.conf
-#RUN echo 'ExecStart=' >> /etc/systemd/system/service.d/override.conf
-#RUN echo 'ExecStart=/usr/lib/systemd/systemd' >> /etc/systemd/system/service.d/override.conf
-#
-#VOLUME [ "/sys/fs/cgroup" ]
-
 CMD ["/sbin/init"]

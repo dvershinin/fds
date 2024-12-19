@@ -186,6 +186,8 @@ class FirewallWrapper:
         from subprocess import CalledProcessError, check_output, STDOUT
         try:
             check_output(["/sbin/conntrack", "-D", "-s", str(ip)], stderr=STDOUT)
+        except FileNotFoundError:
+            log.warning('conntrack not found, skipping connection drop')
         except CalledProcessError as e:
             pass
 
