@@ -9,7 +9,7 @@ RUN yum install -y systemd firewalld dbus python3-pip git \
 WORKDIR /app
 
 # Copy your Python project files into the Docker image
-COPY . /app
+COPY .. /app
 
 RUN echo "ref-names: HEAD -> master, tag: v0" > ".git_archival.txt"
 
