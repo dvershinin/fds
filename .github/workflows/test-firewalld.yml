@@ -23,7 +23,7 @@ jobs:
     - name: Run tests
       run: |
         # Run the container with systemd initialization
-        docker run --detach --privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:rw --cgroupns=host my-firewalld-image
+        docker run --detach --privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:rw --cgroupns=host my-firewalld-image --name firewalld-container
 
         # Wait for the container to be fully initialized
         sleep 10
