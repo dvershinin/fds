@@ -1,4 +1,4 @@
-FROM eniocarboni/docker-rockylinux-systemd:latest
+FROM dvershinin/systemd-base:latest
 
 ## Install systemd and firewalld
 RUN yum install -y systemd firewalld dbus python3-pip git \
