@@ -307,41 +307,6 @@ workflows:
           tags: {only: /^v.*/}
         name: deploy-el9-x86_64
         requires: [build-el9-x86_64]
-  build-deploy-fc40-aarch64:
-    jobs:
-    - build:
-        context: org-global
-        dist: fc40
-        filters:
-          tags: {only: /.*/}
-        name: build-fc40-aarch64
-        resource_class: arm.medium
-    - deploy:
-        arch: aarch64
-        context: org-global
-        dist: fc40
-        filters:
-          branches: {ignore: /.*/}
-          tags: {only: /^v.*/}
-        name: deploy-fc40-aarch64
-        requires: [build-fc40-aarch64]
-  build-deploy-fc40-x86_64:
-    jobs:
-    - build:
-        context: org-global
-        dist: fc40
-        filters:
-          tags: {only: /.*/}
-        name: build-fc40-x86_64
-    - deploy:
-        arch: x86_64
-        context: org-global
-        dist: fc40
-        filters:
-          branches: {ignore: /.*/}
-          tags: {only: /^v.*/}
-        name: deploy-fc40-x86_64
-        requires: [build-fc40-x86_64]
   build-deploy-fc41-aarch64:
     jobs:
     - build:
@@ -377,6 +342,41 @@ workflows:
           tags: {only: /^v.*/}
         name: deploy-fc41-x86_64
         requires: [build-fc41-x86_64]
+  build-deploy-fc42-aarch64:
+    jobs:
+    - build:
+        context: org-global
+        dist: fc42
+        filters:
+          tags: {only: /.*/}
+        name: build-fc42-aarch64
+        resource_class: arm.medium
+    - deploy:
+        arch: aarch64
+        context: org-global
+        dist: fc42
+        filters:
+          branches: {ignore: /.*/}
+          tags: {only: /^v.*/}
+        name: deploy-fc42-aarch64
+        requires: [build-fc42-aarch64]
+  build-deploy-fc42-x86_64:
+    jobs:
+    - build:
+        context: org-global
+        dist: fc42
+        filters:
+          tags: {only: /.*/}
+        name: build-fc42-x86_64
+    - deploy:
+        arch: x86_64
+        context: org-global
+        dist: fc42
+        filters:
+          branches: {ignore: /.*/}
+          tags: {only: /^v.*/}
+        name: deploy-fc42-x86_64
+        requires: [build-fc42-x86_64]
   build-deploy-sles15-aarch64:
     jobs:
     - build:
