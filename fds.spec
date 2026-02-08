@@ -51,20 +51,24 @@ BuildRequires:  python%{python3_pkgversion}-devel
 BuildRequires:  python%{python3_pkgversion}-six
 BuildRequires:  python%{python3_pkgversion}-netaddr
 BuildRequires:  python%{python3_pkgversion}-tqdm
+%if 0%{?amzn} == 0
 BuildRequires:  python%{python3_pkgversion}-cloudflare >= 2.7.1
+%endif
 BuildRequires:  python%{python3_pkgversion}-psutil
 # will bring in msgpack and lockfile dependencies:
 Requires:       python%{python3_pkgversion}-CacheControl
 Requires:       python%{python3_pkgversion}-psutil
 # For tests
 BuildRequires:  python%{python3_pkgversion}-pytest
-# Version extraction
-BuildRequires:  python%{python3_pkgversion}-setuptools_scm_git_archive
+# Version extraction (setuptools_scm_git_archive merged into setuptools_scm >= 6)
+BuildRequires:  python%{python3_pkgversion}-setuptools_scm
 %endif
 
 
 # For generation of man page
+%if 0%{?amzn} == 0
 BuildRequires:  pandoc
+%endif
 
 # CLI app is Python 2 version if Python 2 is available, oterhwise Python 3
 %if %{with python2}
@@ -140,7 +144,9 @@ sed -i '/ipaddress;/d' setup.py
 %py3_build
 %endif
 # generates man page
+%if 0%{?amzn} == 0
 pandoc -s -t man README.md -o %{name}.1
+%endif
 
 
 %install
@@ -154,8 +160,10 @@ pandoc -s -t man README.md -o %{name}.1
 rm -rf %{buildroot}%{python3_sitelib}/tests
 rm -rf %{buildroot}%{python2_sitelib}/tests
 
+%if 0%{?amzn} == 0
 %{__install} -Dpm0644 %{name}.1 \
     $RPM_BUILD_ROOT%{_mandir}/man1/%{name}.1
+%endif
 
 %{__mkdir} -p $RPM_BUILD_ROOT%{_localstatedir}/cache/%{name}
 %{__mkdir} -p $RPM_BUILD_ROOT/var/lib/%{name}
@@ -173,7 +181,9 @@ fi
 %license LICENSE
 %doc README.md
 %{_bindir}/%{name}
+%if 0%{?amzn} == 0
 %{_mandir}/man1/*.1*
+%endif
 %{_sysconfdir}/cron.daily/%{name}
 %attr(0750,root,root) %dir %{_localstatedir}/cache/%{name}
 %attr(0755, root, root)   %dir /var/lib/%{name}
