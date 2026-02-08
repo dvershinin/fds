@@ -61,7 +61,11 @@ Requires:       python%{python3_pkgversion}-psutil
 # For tests
 BuildRequires:  python%{python3_pkgversion}-pytest
 # Version extraction (setuptools_scm_git_archive merged into setuptools_scm >= 6)
+%if 0%{?fedora} >= 42 || 0%{?rhel} >= 10 || 0%{?amzn} >= 2023 || 0%{?suse_version}
 BuildRequires:  python%{python3_pkgversion}-setuptools_scm
+%else
+BuildRequires:  python%{python3_pkgversion}-setuptools_scm_git_archive
+%endif
 %endif
 
 
