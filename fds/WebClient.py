@@ -3,8 +3,12 @@ from __future__ import unicode_literals
 import logging as log
 
 import requests
+import os
 from cachecontrol import CacheControl
-from cachecontrol.caches import FileCache
+try:
+    from cachecontrol.caches import FileCache
+except Exception:
+    FileCache = None
 from tqdm import tqdm
 
 from .__about__ import __version__
@@ -41,7 +45,18 @@ class WebClient:
     def __init__(self):
         s = requests.session()
         s.headers.update({'User-Agent': 'fds/{}'.format(__version__)})
-        self.cs = CacheControl(s, cache=FileCache('/var/cache/fds'))
+        # Allow disabling on-disk cache via env var (useful in tests/containers)
+        if os.getenv('FDS_NOCACHE') == '1':
+            self.cs = CacheControl(s)
+        else:
+            cache = None
+            if FileCache is not None:
+                try:
+                    cache = FileCache('/var/cache/fds')
+                except Exception:
+                    cache = None
+            # Fallback to in-memory cache if file cache cannot be used
+            self.cs = CacheControl(s, cache=cache) if cache is not None else CacheControl(s)
 
     def download_file(self, url, local_filename=None, display_name=None,
                       return_type='filename'):
@@ -70,6 +85,10 @@ class WebClient:
                 desc='Downloading {}'.format(local_filename if not display_name else display_name),
                 leave=True  # progressbar stays
             )
+            # Ensure destination directory exists
+            dest_dir = os.path.dirname(local_filename)
+            if dest_dir and not os.path.isdir(dest_dir):
+                os.makedirs(dest_dir, exist_ok=True)
             with open(local_filename, 'wb') as f:
                 for chunk in r.iter_content(chunk_size=chunk_size):
                     if chunk:  # filter out keep-alive new chunks
@@ -91,12 +110,16 @@ class WebClient:
         # )
         url = get_country_ipblocks_url(country)
         log.debug('Downloading {}'.format(url))
-        content = self.download_file(
-            url,
-            display_name='{} networks list'.format(country.getNation()),
-            local_filename=get_country_zone_filename(country),
-            return_type='contents'
-        )
+        try:
+            content = self.download_file(
+                url,
+                display_name='{} networks list'.format(country.getNation()),
+                local_filename=get_country_zone_filename(country),
+                return_type='contents'
+            )
+        except requests.exceptions.HTTPError as e:
+            log.warning('Failed to fetch networks for %s (%s): %s', country.name, country.code, e)
+            return []
         return content.splitlines()
 
     def get_tor_exits(self, family=4):

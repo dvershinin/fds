@@ -39,8 +39,31 @@ def block_region(region):
     countries = Countries()
     fw = FirewallWrapper()  # Create a single instance outside the loop
     for country in countries:
-        if country.data['region'] == region:
+        # normalize region same way as Countries.get_continents()
+        country_region = country.data['region']
+        if country_region == 'Americas':
+            country_region = country.data['subregion']
+        if country_region in ['Caribbean', 'Central America']:
+            country_region = 'North America'
+        if country_region == region:
             action_block(country.name, reload=False, fw=fw)
+
+
+def unblock_region(region):
+    """
+    Unblock all countries within a given region/continent.
+    Mirrors block_region's normalization logic.
+    """
+    countries = Countries()
+    fw = FirewallWrapper()
+    for country in countries:
+        country_region = country.data['region']
+        if country_region == 'Americas':
+            country_region = country.data['subregion']
+        if country_region in ['Caribbean', 'Central America']:
+            country_region = 'North America'
+        if country_region == region:
+            fw.unblock_country(country.name)
 
 
 def action_block(ip_or_country_name, ipset_name=None, reload=True, fw=None):
@@ -92,7 +115,12 @@ def action_unblock(ip_or_country_name):
         fw.unblock_ip(ip_or_country_name)
         cw.unblock_ip(ip_or_country_name)
     except ValueError:
-        fw.unblock_country(ip_or_country_name)
+        countries = Countries()
+        regions = countries.get_continents()
+        if ip_or_country_name in regions:
+            unblock_region(ip_or_country_name)
+        else:
+            fw.unblock_country(ip_or_country_name)
 
 
 def action_reset():

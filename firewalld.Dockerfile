@@ -1,7 +1,7 @@
 FROM dvershinin/systemd-base:latest
 
 ## Install systemd and firewalld
-RUN yum install -y systemd firewalld dbus python3-pip git \
+RUN yum install -y systemd firewalld dbus dbus-daemon dbus-tools which python3-pip git \
     && yum clean all \
     && systemctl enable firewalld
 
