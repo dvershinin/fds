@@ -47,6 +47,7 @@ def block_region(region):
             country_region = 'North America'
         if country_region == region:
             action_block(country.name, reload=False, fw=fw)
+    fw.fw.reload()
 
 
 def unblock_region(region):
