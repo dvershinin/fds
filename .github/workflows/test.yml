@@ -34,7 +34,7 @@ jobs:
       image: getpagespeed/lts:el7
     steps:
       - name: Install git and dependencies
-        run: yum -y install git python2-setuptools_scm_git_archive
+        run: yum -y install git python2-setuptools_scm_git_archive python-virtualenv
 
       - name: Clone repository
         run: git clone --depth 1 --branch ${{ github.ref_name }} https://github.com/${{ github.repository }}.git .
