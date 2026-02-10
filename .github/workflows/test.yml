@@ -20,13 +20,10 @@ jobs:
           sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*.repo
 
       - name: Install git and dependencies
-        run: yum -y install git python2 python2-pip python-six
+        run: yum -y install git python2 python-six python-netaddr
 
       - name: Clone repository
         run: git clone --depth 1 --branch ${{ github.ref_name }} https://github.com/${{ github.repository }}.git .
-
-      - name: Install Python dependencies
-        run: python2 -m pip install netaddr
 
       - name: Verify Python 2.7 imports
         run: |
