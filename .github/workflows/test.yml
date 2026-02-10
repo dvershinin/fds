@@ -26,7 +26,7 @@ jobs:
         run: git clone --depth 1 --branch ${{ github.ref_name }} https://github.com/${{ github.repository }}.git .
 
       - name: Install Python dependencies
-        run: pip2 install netaddr
+        run: python2 -m pip install netaddr
 
       - name: Verify Python 2.7 imports
         run: |
