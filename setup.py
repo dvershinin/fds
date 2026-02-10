@@ -44,7 +44,7 @@ setup(
         'write_to': 'fds/__about__.py',
         'write_to_template': '__version__ = "{version}"'
     },
-    setup_requires=['setuptools_scm', 'setuptools_scm_git_archive'],
+    setup_requires=['setuptools_scm'],
     install_requires=install_requires,
     extras_require={
         "tests": install_requires + tests_requires,
