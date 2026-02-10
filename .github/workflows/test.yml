@@ -26,37 +26,23 @@ jobs:
           python2 -m py_compile fds/Country.py fds/WebClient.py fds/FirewallWrapper.py fds/fds.py fds/Countries.py fds/Config.py fds/utils.py
           echo "All Python 2.7 syntax checks passed"
 
-  # Integration test with firewalld
+  # Integration test with firewalld using system packages
   test:
-    name: Lint code base
+    name: Integration test
     runs-on: ubuntu-latest
     container:
       image: getpagespeed/lts:el7
     steps:
-      - name: Install git and dependencies
+      - name: Install fds from GetPageSpeed repo
         run: |
           yum -y install https://extras.getpagespeed.com/release-latest.rpm
-          yum -y install git python2-setuptools_scm_git_archive python-virtualenv python2-cloudflare
+          yum -y install fds git
 
       - name: Clone repository
         run: git clone --depth 1 --branch ${{ github.ref_name }} https://github.com/${{ github.repository }}.git .
 
-      - name: Fake version
-        run: |
-          echo "ref-names: HEAD -> master, tag: v0" > ".git_archival.txt"
-
-      - name: Ensure venv
-        run: |
-          virtualenv --system-site-packages ./venv
-
-      - name: Ensure fds installed to venv
-        run: |
-          ./venv/bin/pip install --upgrade 'pip<21'
-          ./venv/bin/pip install -e .
-
       - name: Ensure fds required directories
-        run: |
-          mkdir -p /var/cache/fds /var/lib/fds
+        run: mkdir -p /var/cache/fds /var/lib/fds
 
       - name: Start dbus and firewalld
         run: |
@@ -68,21 +54,16 @@ jobs:
           firewall-cmd --state || echo "firewalld not running, skipping integration tests"
 
       - name: Test IP unblock first
-        run: |
-          ./venv/bin/python ./venv/bin/fds unblock 1.2.3.4 || true
+        run: fds unblock 1.2.3.4 || true
 
       - name: Test IP block
-        run: |
-          ./venv/bin/python ./venv/bin/fds block 1.2.3.4
+        run: fds block 1.2.3.4
 
       - name: Test country block
-        run: |
-          ./venv/bin/python ./venv/bin/fds block China
+        run: fds block China
 
       - name: Test cron for sets updating
-        run: |
-          ./venv/bin/python ./venv/bin/fds cron
+        run: fds cron
 
       - name: Unblock a country
-        run: |
-          ./venv/bin/python ./venv/bin/fds unblock China
+        run: fds unblock China
