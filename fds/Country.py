@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from builtins import chr
+import six
 
 
 class Country:
@@ -9,7 +9,7 @@ class Country:
     def getFlag(self):
         code = self.code
         if code:
-            return chr(ord(code[0]) + Country.OFFSET) + chr(ord(code[1]) + Country.OFFSET)
+            return six.unichr(ord(code[0]) + Country.OFFSET) + six.unichr(ord(code[1]) + Country.OFFSET)
         return False
 
     def __init__(self, name, data={}):

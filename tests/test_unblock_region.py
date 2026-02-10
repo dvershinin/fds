@@ -6,12 +6,12 @@ import time
 def exec_in_container(cmd):
     return subprocess.check_output([
         'docker', 'exec', 'firewalld-container', '/bin/bash', '-lc', cmd
-    ], stderr=subprocess.STDOUT, text=True)
+    ], stderr=subprocess.STDOUT, universal_newlines=True)
 
 
 def test_unblock_region_smoke():
     # Ensure container is up
-    out = subprocess.check_output(['docker', 'ps', '--filter', 'name=firewalld-container', '--format', '{{.Names}}'], text=True)
+    out = subprocess.check_output(['docker', 'ps', '--filter', 'name=firewalld-container', '--format', '{{.Names}}'], universal_newlines=True)
     assert 'firewalld-container' in out.strip()
 
     # Start firewalld if needed

@@ -88,7 +88,7 @@ class WebClient:
             # Ensure destination directory exists
             dest_dir = os.path.dirname(local_filename)
             if dest_dir and not os.path.isdir(dest_dir):
-                os.makedirs(dest_dir, exist_ok=True)
+                os.makedirs(dest_dir)
             with open(local_filename, 'wb') as f:
                 for chunk in r.iter_content(chunk_size=chunk_size):
                     if chunk:  # filter out keep-alive new chunks
