@@ -14,7 +14,6 @@ install_requires = [
     'six',
     'netaddr',
     'cachecontrol',
-    'filelock>=3.0.0',
     'tqdm',
     # required for cf.user.tokens.verify.get() and cf.accounts.get()
     # neither endpoints are available in CentOS 7, thus we rebuild pkg from
