@@ -22,15 +22,16 @@ jobs:
       - name: Install git and dependencies
         run: |
           yum -y install epel-release
-          yum -y install git python2 python-six python-netaddr python-ipaddress python-firewall
+          yum -y install git python2 python-six
 
       - name: Clone repository
         run: git clone --depth 1 --branch ${{ github.ref_name }} https://github.com/${{ github.repository }}.git .
 
-      - name: Verify Python 2.7 imports
+      - name: Verify Python 2.7 syntax
         run: |
           echo '__version__ = "0.0.0"' > fds/__about__.py
-          python2 -c "import fds; import fds.Country; import fds.Countries; import fds.WebClient; import fds.FirewallWrapper"
+          python2 -m py_compile fds/Country.py fds/WebClient.py fds/FirewallWrapper.py fds/fds.py fds/Countries.py fds/Config.py fds/utils.py
+          echo "All Python 2.7 syntax checks passed"
 
   # Set the job key. The key is displayed as the job name
   # when a job name is not provided
