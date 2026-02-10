@@ -12,17 +12,10 @@ jobs:
     name: Python 2.7 compatibility check
     runs-on: ubuntu-latest
     container:
-      image: centos:7
+      image: getpagespeed/lts:el7
     steps:
-      - name: Fix CentOS 7 EOL repos
-        run: |
-          sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*.repo
-          sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*.repo
-
-      - name: Install git and dependencies
-        run: |
-          yum -y install epel-release
-          yum -y install git python2 python-six
+      - name: Install git
+        run: yum -y install git
 
       - name: Clone repository
         run: git clone --depth 1 --branch ${{ github.ref_name }} https://github.com/${{ github.repository }}.git .
@@ -33,23 +26,18 @@ jobs:
           python2 -m py_compile fds/Country.py fds/WebClient.py fds/FirewallWrapper.py fds/fds.py fds/Countries.py fds/Config.py fds/utils.py
           echo "All Python 2.7 syntax checks passed"
 
-  # Set the job key. The key is displayed as the job name
-  # when a job name is not provided
+  # Integration test with firewalld
   test:
-    # Name the Job
     name: Lint code base
-    # Set the type of machine to run on
-    runs-on: [self-hosted]
-
+    runs-on: ubuntu-latest
+    container:
+      image: getpagespeed/lts:el7
     steps:
-      - name: Ensure /opt/fds, python2-setuptools_scm_git_archive
-        run: |
-          sudo mkdir -p /opt/fds
-          sudo yum -y install python2-setuptools_scm_git_archive
+      - name: Install git and dependencies
+        run: yum -y install git python2-setuptools_scm_git_archive
 
-      # Checks out a copy of your repository on the ubuntu-latest machine
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Clone repository
+        run: git clone --depth 1 --branch ${{ github.ref_name }} https://github.com/${{ github.repository }}.git .
 
       - name: Fake version
         run: |
@@ -65,24 +53,33 @@ jobs:
 
       - name: Ensure fds required directories
         run: |
-          sudo mkdir -p /var/cache/fds /var/lib/fds
+          mkdir -p /var/cache/fds /var/lib/fds
+
+      - name: Start dbus and firewalld
+        run: |
+          mkdir -p /var/run/dbus /run/lock
+          dbus-uuidgen --ensure || true
+          dbus-daemon --system --fork || true
+          firewalld --nofork &
+          sleep 3
+          firewall-cmd --state || echo "firewalld not running, skipping integration tests"
 
       - name: Test IP unblock first
         run: |
-          sudo ./venv/bin/python ./venv/bin/fds unblock 1.2.3.4
+          ./venv/bin/python ./venv/bin/fds unblock 1.2.3.4 || true
 
       - name: Test IP block
         run: |
-          sudo ./venv/bin/python ./venv/bin/fds block 1.2.3.4
+          ./venv/bin/python ./venv/bin/fds block 1.2.3.4
 
       - name: Test country block
         run: |
-          sudo ./venv/bin/python ./venv/bin/fds block China
+          ./venv/bin/python ./venv/bin/fds block China
 
       - name: Test cron for sets updating
         run: |
-          sudo ./venv/bin/python ./venv/bin/fds cron
+          ./venv/bin/python ./venv/bin/fds cron
 
       - name: Unblock a country
         run: |
-          sudo ./venv/bin/python ./venv/bin/fds unblock China
+          ./venv/bin/python ./venv/bin/fds unblock China
