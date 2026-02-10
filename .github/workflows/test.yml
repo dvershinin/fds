@@ -49,6 +49,7 @@ jobs:
 
       - name: Ensure fds installed to venv
         run: |
+          ./venv/bin/pip install --upgrade 'pip<21'
           ./venv/bin/pip install -e .
 
       - name: Ensure fds required directories
