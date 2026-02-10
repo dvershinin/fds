@@ -22,7 +22,7 @@ jobs:
       - name: Install git and dependencies
         run: |
           yum -y install epel-release
-          yum -y install git python2 python-six python-netaddr python-ipaddress
+          yum -y install git python2 python-six python-netaddr python-ipaddress python-firewall
 
       - name: Clone repository
         run: git clone --depth 1 --branch ${{ github.ref_name }} https://github.com/${{ github.repository }}.git .
