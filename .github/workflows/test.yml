@@ -14,6 +14,11 @@ jobs:
     container:
       image: centos:7
     steps:
+      - name: Fix CentOS 7 EOL repos
+        run: |
+          sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*.repo
+          sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*.repo
+
       - name: Install git
         run: yum -y install git
 
