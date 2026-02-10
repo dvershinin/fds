@@ -35,9 +35,10 @@ jobs:
     steps:
       - name: Install fds from GetPageSpeed repo
         run: |
+          yum -y install epel-release
           yum -y install https://extras.getpagespeed.com/release-latest.rpm
           yum-config-manager --disable getpagespeed-extras
-          yum -y install fds git
+          yum -y install fds git python2-filelock
 
       - name: Clone repository
         run: git clone --depth 1 --branch ${{ github.ref_name }} https://github.com/${{ github.repository }}.git .
