@@ -36,6 +36,7 @@ jobs:
       - name: Install fds from GetPageSpeed repo
         run: |
           yum -y install https://extras.getpagespeed.com/release-latest.rpm
+          yum-config-manager --disable getpagespeed-extras
           yum -y install fds git
 
       - name: Clone repository
