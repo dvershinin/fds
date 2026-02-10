@@ -141,6 +141,8 @@ sed -i '/ipaddress;/d' setup.py
 
 
 %build
+# Set version for setuptools_scm in case .git_archival.txt parsing fails
+export SETUPTOOLS_SCM_PRETEND_VERSION=%{version}
 %if %{with python2}
 %py2_build
 %endif
@@ -154,6 +156,8 @@ pandoc -s -t man README.md -o %{name}.1
 
 
 %install
+# Set version for setuptools_scm in case .git_archival.txt parsing fails
+export SETUPTOOLS_SCM_PRETEND_VERSION=%{version}
 %if %{with python2}
 %py2_install
 %endif
