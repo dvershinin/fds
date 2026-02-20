@@ -247,26 +247,36 @@ class FirewallWrapper:
         return blocked_countries
 
     def update_ipsets(self):
-        need_reload = False
+        """Update existing ipsets with fresh data using runtime API.
+
+        Uses the runtime API (self.fw.setEntries) which applies changes
+        immediately without requiring a firewalld reload. This avoids
+        brief network connectivity outages that occur during reload.
+        """
         all_ipsets = self.fw.getIPSets()
         from .Countries import Countries
         countries = Countries()
-        is_tor_blocked = False
+        w = WebClient()
+
         for ipset_name in all_ipsets:
-            if ipset_name.startswith('fds-tor-'):
-                is_tor_blocked = True
+            if ipset_name == 'fds-tor-4':
+                log.info('Updating Tor IPv4 exit nodes')
+                entries = w.get_tor_exits(family=4)
+                self.fw.setEntries(ipset_name, entries)
+            elif ipset_name == 'fds-tor-6':
+                log.info('Updating Tor IPv6 exit nodes')
+                entries = w.get_tor_exits(family=6)
+                self.fw.setEntries(ipset_name, entries)
             elif ipset_name.startswith('fds-'):
                 country_code = ipset_name.split('-')[1]
                 if country_code in countries.names_by_code:
                     country_name = countries.names_by_code[country_code]
                     country = countries.get_by_name(country_name)
-                    self.block_country(country, reload=False)
-                    need_reload = True
-        if is_tor_blocked:
-            self.block_tor(reload=False)
-            need_reload = True
-        if need_reload:
-            self.fw.reload()
+                    log.info('Updating {} {}'.format(country.name, country.getFlag()))
+                    entries = w.get_country_networks(country=country)
+                    self.fw.setEntries(ipset_name, entries)
+
+        # No reload needed - runtime API applies immediately
         return True
 
     def reset(self):

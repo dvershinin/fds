@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.0.44] - 2026-02-20
+### Fixed
+* `fds cron` no longer causes network connectivity outages by using runtime API for ipset updates instead of firewalld reload
+
 ## [0.0.30] - 2021-08-03
 ### Added
 * Optionally uses aggregation to overcome FirewallD bugs #22

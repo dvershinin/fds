@@ -19,7 +19,7 @@
 %endif
 
 Name:           fds
-Version:        0.0.43
+Version:        0.0.44
 Release:        1%{?dist}
 Summary:        The go-to FirewallD CLI companion app
 License:        BSD
