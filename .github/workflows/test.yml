@@ -21,11 +21,17 @@ jobs:
         run: yum -y install git
 
       - name: Clone repository
+        # Bind ref names to env vars before use to avoid GitHub Actions script
+        # injection via crafted PR branch names. See SonarSource S6532.
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          REF_NAME: ${{ github.ref_name }}
+          REPOSITORY: ${{ github.repository }}
         run: |
-          if [ -n "${{ github.head_ref }}" ]; then
-            git clone --depth 1 --branch "${{ github.head_ref }}" https://github.com/${{ github.repository }}.git .
+          if [ -n "$HEAD_REF" ]; then
+            git clone --depth 1 --branch "$HEAD_REF" "https://github.com/${REPOSITORY}.git" .
           else
-            git clone --depth 1 --branch "${{ github.ref_name }}" https://github.com/${{ github.repository }}.git .
+            git clone --depth 1 --branch "$REF_NAME" "https://github.com/${REPOSITORY}.git" .
           fi
 
       - name: Verify Python 2.7 syntax

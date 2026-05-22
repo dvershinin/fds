@@ -34,6 +34,13 @@ def _read_account_ids():
     return [a.strip() for a in raw.split(',') if a.strip()]
 
 
+def _cf_target_for(net):
+    """Map a netaddr IPAddress/IPNetwork to Cloudflare access-rule target type."""
+    if isinstance(net, IPAddress):
+        return 'ip6' if net.version == 6 else 'ip'
+    return 'ip_range'
+
+
 def network_for_cloudflare(network):
     """
     Cloudflare only supports bare IP, and /16 or /24 CIDR ranges
@@ -149,11 +156,11 @@ class CloudflareWrapper(CloudFlare):
         try:
             self.all_accounts = self.accounts.get()
             self.use = True
-        except CloudFlareAPIError as e:
-            log.error(
-                "Cloudflare /accounts listing failed: %s. "
+        except CloudFlareAPIError:
+            log.exception(
+                "Cloudflare /accounts listing failed. "
                 "Set 'account_ids' in %s under [CloudFlare] to bypass this listing.",
-                e, cf_config_filename,
+                cf_config_filename,
             )
 
     def block_ip(self, ip, comment='fds'):
@@ -240,32 +247,30 @@ class CloudflareWrapper(CloudFlare):
         if not self.use:
             log.info('Skipped unblock in Cloudflare as it was not set up. Run fds config?')
             return
-        nets = network_for_cloudflare(ip)
         for a in self.all_accounts:
-            for n in nets:
-                if isinstance(n, IPAddress):
-                    target = 'ip6' if n.version == 6 else 'ip'
-                else:
-                    target = 'ip_range'
-                params = {
-                    'mode': 'block',
-                    'configuration.target': target,
-                    'configuration.value': str(n),
-                }
-                try:
-                    rules = self.accounts.firewall.access_rules.rules.get(a['id'], params=params)
-                except CloudFlareAPIError as e:
-                    log.error("Cloudflare list-rules failed in account %s: %s", a['name'], e)
-                    continue
-                for rule in rules:
-                    log.info(
-                        'Unblocking %s in Cloudflare account %s (rule %s)',
-                        n, a['name'], rule['id'],
-                    )
-                    try:
-                        self.accounts.firewall.access_rules.rules.delete(a['id'], rule['id'])
-                    except CloudFlareAPIError as e:
-                        log.error(
-                            "Cloudflare delete-rule failed for %s in %s: %s",
-                            rule['id'], a['name'], e,
-                        )
+            for n in network_for_cloudflare(ip):
+                self._delete_block_rules_for(a, n)
+
+    def _delete_block_rules_for(self, account, net):
+        params = {
+            'mode': 'block',
+            'configuration.target': _cf_target_for(net),
+            'configuration.value': str(net),
+        }
+        try:
+            rules = self.accounts.firewall.access_rules.rules.get(account['id'], params=params)
+        except CloudFlareAPIError:
+            log.exception("Cloudflare list-rules failed in account %s", account['name'])
+            return
+        for rule in rules:
+            log.info(
+                'Unblocking %s in Cloudflare account %s (rule %s)',
+                net, account['name'], rule['id'],
+            )
+            try:
+                self.accounts.firewall.access_rules.rules.delete(account['id'], rule['id'])
+            except CloudFlareAPIError:
+                log.exception(
+                    "Cloudflare delete-rule failed for %s in %s",
+                    rule['id'], account['name'],
+                )
