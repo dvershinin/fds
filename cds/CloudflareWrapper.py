@@ -55,6 +55,25 @@ def _prompt_for_account_ids():
     return ','.join(a.strip() for a in raw.split(',') if a.strip())
 
 
+def _persist_cloudflare_config(cf_token):
+    """Write the verified token + optional account_ids into cf_config_filename."""
+    config = ConfigParser()
+    config.read(cf_config_filename)
+    if not config.has_section('CloudFlare'):
+        config.add_section('CloudFlare')
+    config.set('CloudFlare', 'token', cf_token)
+    cleaned_ids = _prompt_for_account_ids()
+    if cleaned_ids:
+        config.set('CloudFlare', 'account_ids', cleaned_ids)
+    if not exists(dirname(cf_config_filename)):
+        os.makedirs(dirname(cf_config_filename))
+    with open(cf_config_filename, 'w') as configfile:
+        config.write(configfile)
+        # TODO evaluate security while creation
+        os.chmod(cf_config_filename, 0o600)
+    print('Token is valid. Saved to {}'.format(cf_config_filename))
+
+
 def network_for_cloudflare(network):
     """
     Cloudflare only supports bare IP, and /16 or /24 CIDR ranges
@@ -104,38 +123,20 @@ def suggest_set_up():
         "See https://fds.getpagespeed.com/cloudflare/")
     print('Type n to keep Cloudflare integration disabled, or enter token: ')
     cf_token = six.moves.input("Cloudflare token: ")
-    if cf_token and 'n' != cf_token.lower():
-        cf = CloudFlare(token=cf_token)
-        try:
-            token_verification = cf.user.tokens.verify.get()
-            if token_verification['status'] == 'active':
-                config = ConfigParser()
-                config.read(cf_config_filename)
-                section = "CloudFlare"
-                if not config.has_section(section):
-                    # prefer "fds" section in cloudflare.cfg for new setup
-                    section = "fds"
-                    config.add_section("CloudFlare")
-                config.set('CloudFlare', 'token', cf_token)
-                cleaned_ids = _prompt_for_account_ids()
-                if cleaned_ids:
-                    config.set('CloudFlare', 'account_ids', cleaned_ids)
-                # ensure dir .cloudflare exists:
-                if not exists(dirname(cf_config_filename)):
-                    os.makedirs(dirname(cf_config_filename))
-                with open(cf_config_filename, 'w') as configfile:  # save
-                    config.write(configfile)
-                    # TODO evaluate security while creation
-                    os.chmod(cf_config_filename, 0o600)
-                print('Token is valid. Saved to {}'.format(cf_config_filename))
-                return True
-            else:
-                print('Token is inactive')
-        except CloudFlareAPIError as e:
-            print('Token verification failed: {}'.format(e))
-    else:
+    if not cf_token or 'n' == cf_token.lower():
         print('No token')
-    return False
+        return False
+    cf = CloudFlare(token=cf_token)
+    try:
+        token_verification = cf.user.tokens.verify.get()
+    except CloudFlareAPIError as e:
+        print('Token verification failed: {}'.format(e))
+        return False
+    if token_verification['status'] != 'active':
+        print('Token is inactive')
+        return False
+    _persist_cloudflare_config(cf_token)
+    return True
 
 
 class CloudflareWrapper(CloudFlare):
