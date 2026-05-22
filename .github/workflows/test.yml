@@ -1,8 +1,11 @@
 name: Super-Linter
 
-# Run this workflow every time a new commit pushed to your repository
+# Run this workflow on every push and on PRs targeting master so PR checks gate merging.
 on:
   push:
+    branches:
+      - master
+  pull_request:
     branches:
       - master
 
@@ -18,13 +21,34 @@ jobs:
         run: yum -y install git
 
       - name: Clone repository
-        run: git clone --depth 1 --branch ${{ github.ref_name }} https://github.com/${{ github.repository }}.git .
+        run: |
+          if [ -n "${{ github.head_ref }}" ]; then
+            git clone --depth 1 --branch "${{ github.head_ref }}" https://github.com/${{ github.repository }}.git .
+          else
+            git clone --depth 1 --branch "${{ github.ref_name }}" https://github.com/${{ github.repository }}.git .
+          fi
 
       - name: Verify Python 2.7 syntax
         run: |
           echo '__version__ = "0.0.0"' > fds/__about__.py
-          python2 -m py_compile fds/Country.py fds/WebClient.py fds/FirewallWrapper.py fds/fds.py fds/Countries.py fds/Config.py fds/utils.py
+          python2 -m py_compile fds/Country.py fds/WebClient.py fds/FirewallWrapper.py fds/fds.py fds/Countries.py fds/Config.py fds/utils.py fds/config_funcs.py cds/CloudflareWrapper.py
           echo "All Python 2.7 syntax checks passed"
+
+  # Python 3 unit tests (mocked, no network/firewalld required)
+  test-py3-unit:
+    name: Python 3 unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest mock six netaddr 'cloudflare>=2.7.1,<2.20' appdirs
+      - name: Run unit tests
+        run: pytest tests/test_cloudflare_wrapper.py tests/test_py2_compat.py -v
 
   # Integration test with firewalld using system packages
   # This test is optional - package dependencies from noarch repo may be incomplete

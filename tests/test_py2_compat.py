@@ -1,6 +1,15 @@
 """Verify all fds modules can be imported (syntax/compatibility check)."""
 from __future__ import unicode_literals
 
+import pytest
+
+# fds.__init__ -> fds.fds -> fds.FirewallWrapper imports the system 'dbus' and
+# 'firewall' Python bindings, which only exist on RHEL-family hosts with
+# firewalld installed. Importing anything from `fds.*` triggers that chain via
+# __init__.py, so skip the whole module cleanly when the bindings are missing.
+pytest.importorskip("dbus")
+pytest.importorskip("firewall")
+
 
 def test_all_modules_import():
     import fds

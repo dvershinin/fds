@@ -22,6 +22,18 @@ home = expanduser("~")
 cf_config_filename = "{}/.cloudflare/cloudflare.cfg".format(home)
 
 
+def _read_account_ids():
+    """Read the comma-separated 'account_ids' list from cloudflare.cfg, or [] if absent."""
+    if not exists(cf_config_filename):
+        return []
+    config = ConfigParser()
+    config.read(cf_config_filename)
+    if not config.has_option('CloudFlare', 'account_ids'):
+        return []
+    raw = config.get('CloudFlare', 'account_ids')
+    return [a.strip() for a in raw.split(',') if a.strip()]
+
+
 def network_for_cloudflare(network):
     """
     Cloudflare only supports bare IP, and /16 or /24 CIDR ranges
@@ -84,6 +96,16 @@ def suggest_set_up():
                     section = "fds"
                     config.add_section("CloudFlare")
                 config.set('CloudFlare', 'token', cf_token)
+                print(
+                    "Optional: enter Cloudflare account IDs that fds should push rules to "
+                    "(comma-separated). Leave blank to push to every account the key sees "
+                    "(legacy behavior). Recommended: set this so rules are not written into "
+                    "unrelated accounts the key happens to have access to."
+                )
+                account_ids_raw = six.moves.input("Account IDs: ").strip()
+                if account_ids_raw:
+                    cleaned = ','.join(a.strip() for a in account_ids_raw.split(',') if a.strip())
+                    config.set('CloudFlare', 'account_ids', cleaned)
                 # ensure dir .cloudflare exists:
                 if not exists(dirname(cf_config_filename)):
                     os.makedirs(dirname(cf_config_filename))
@@ -108,15 +130,31 @@ class CloudflareWrapper(CloudFlare):
         super(CloudflareWrapper, self).__init__()
 
         self.use = False
+        self.all_accounts = []
         # The premise is that user creates fds specific token and/or ensures "Account Resources"
         # setting for it to include only account fds operates on. So we do blocks on each account
         if not exists(cf_config_filename):
             return
+
+        # If the user has cached the account IDs in cloudflare.cfg, skip the /accounts listing
+        # entirely. The listing is fragile (Cloudflare 503s on it under classic Global API Key
+        # auth) AND it returns every account the key happens to see, which for legacy Global
+        # API Keys can include unrelated third-party accounts the user does not own.
+        account_ids = _read_account_ids()
+        if account_ids:
+            self.all_accounts = [{'id': aid, 'name': aid} for aid in account_ids]
+            self.use = True
+            return
+
         try:
             self.all_accounts = self.accounts.get()
             self.use = True
         except CloudFlareAPIError as e:
-            print("Cloudflare API error: {}".format(e))
+            log.error(
+                "Cloudflare /accounts listing failed: %s. "
+                "Set 'account_ids' in %s under [CloudFlare] to bypass this listing.",
+                e, cf_config_filename,
+            )
 
     def block_ip(self, ip, comment='fds'):
         if not self.use:
@@ -199,4 +237,35 @@ class CloudflareWrapper(CloudFlare):
                 raise e
 
     def unblock_ip(self, ip):
-        pass
+        if not self.use:
+            log.info('Skipped unblock in Cloudflare as it was not set up. Run fds config?')
+            return
+        nets = network_for_cloudflare(ip)
+        for a in self.all_accounts:
+            for n in nets:
+                if isinstance(n, IPAddress):
+                    target = 'ip6' if n.version == 6 else 'ip'
+                else:
+                    target = 'ip_range'
+                params = {
+                    'mode': 'block',
+                    'configuration.target': target,
+                    'configuration.value': str(n),
+                }
+                try:
+                    rules = self.accounts.firewall.access_rules.rules.get(a['id'], params=params)
+                except CloudFlareAPIError as e:
+                    log.error("Cloudflare list-rules failed in account %s: %s", a['name'], e)
+                    continue
+                for rule in rules:
+                    log.info(
+                        'Unblocking %s in Cloudflare account %s (rule %s)',
+                        n, a['name'], rule['id'],
+                    )
+                    try:
+                        self.accounts.firewall.access_rules.rules.delete(a['id'], rule['id'])
+                    except CloudFlareAPIError as e:
+                        log.error(
+                            "Cloudflare delete-rule failed for %s in %s: %s",
+                            rule['id'], a['name'], e,
+                        )
