@@ -67,7 +67,12 @@ jobs:
           yum -y install fds git python2-filelock
 
       - name: Clone repository
-        run: git clone --depth 1 --branch ${{ github.ref_name }} https://github.com/${{ github.repository }}.git .
+        run: |
+          if [ -n "${{ github.head_ref }}" ]; then
+            git clone --depth 1 --branch "${{ github.head_ref }}" https://github.com/${{ github.repository }}.git .
+          else
+            git clone --depth 1 --branch "${{ github.ref_name }}" https://github.com/${{ github.repository }}.git .
+          fi
 
       - name: Ensure fds required directories
         run: mkdir -p /var/cache/fds /var/lib/fds
