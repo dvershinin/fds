@@ -41,6 +41,20 @@ def _cf_target_for(net):
     return 'ip_range'
 
 
+def _prompt_for_account_ids():
+    """Interactively prompt for the comma-separated account IDs list, returning normalized str or ''."""
+    print(
+        "Optional: enter Cloudflare account IDs that fds should push rules to "
+        "(comma-separated). Leave blank to push to every account the key sees "
+        "(legacy behavior). Recommended: set this so rules are not written into "
+        "unrelated accounts the key happens to have access to."
+    )
+    raw = six.moves.input("Account IDs: ").strip()
+    if not raw:
+        return ''
+    return ','.join(a.strip() for a in raw.split(',') if a.strip())
+
+
 def network_for_cloudflare(network):
     """
     Cloudflare only supports bare IP, and /16 or /24 CIDR ranges
@@ -103,16 +117,9 @@ def suggest_set_up():
                     section = "fds"
                     config.add_section("CloudFlare")
                 config.set('CloudFlare', 'token', cf_token)
-                print(
-                    "Optional: enter Cloudflare account IDs that fds should push rules to "
-                    "(comma-separated). Leave blank to push to every account the key sees "
-                    "(legacy behavior). Recommended: set this so rules are not written into "
-                    "unrelated accounts the key happens to have access to."
-                )
-                account_ids_raw = six.moves.input("Account IDs: ").strip()
-                if account_ids_raw:
-                    cleaned = ','.join(a.strip() for a in account_ids_raw.split(',') if a.strip())
-                    config.set('CloudFlare', 'account_ids', cleaned)
+                cleaned_ids = _prompt_for_account_ids()
+                if cleaned_ids:
+                    config.set('CloudFlare', 'account_ids', cleaned_ids)
                 # ensure dir .cloudflare exists:
                 if not exists(dirname(cf_config_filename)):
                     os.makedirs(dirname(cf_config_filename))
