@@ -1,8 +1,11 @@
 name: Super-Linter
 
-# Run this workflow every time a new commit pushed to your repository
+# Run this workflow on every push and on PRs targeting master so PR checks gate merging.
 on:
   push:
+    branches:
+      - master
+  pull_request:
     branches:
       - master
 
@@ -18,56 +21,37 @@ jobs:
         run: yum -y install git
 
       - name: Clone repository
-        run: git clone --depth 1 --branch ${{ github.ref_name }} https://github.com/${{ github.repository }}.git .
+        # Bind ref names to env vars before use to avoid GitHub Actions script
+        # injection via crafted PR branch names. See SonarSource S6532.
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          REF_NAME: ${{ github.ref_name }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          if [ -n "$HEAD_REF" ]; then
+            git clone --depth 1 --branch "$HEAD_REF" "https://github.com/${REPOSITORY}.git" .
+          else
+            git clone --depth 1 --branch "$REF_NAME" "https://github.com/${REPOSITORY}.git" .
+          fi
 
       - name: Verify Python 2.7 syntax
         run: |
           echo '__version__ = "0.0.0"' > fds/__about__.py
-          python2 -m py_compile fds/Country.py fds/WebClient.py fds/FirewallWrapper.py fds/fds.py fds/Countries.py fds/Config.py fds/utils.py
+          python2 -m py_compile fds/Country.py fds/WebClient.py fds/FirewallWrapper.py fds/fds.py fds/Countries.py fds/Config.py fds/utils.py fds/config_funcs.py cds/CloudflareWrapper.py
           echo "All Python 2.7 syntax checks passed"
 
-  # Integration test with firewalld using system packages
-  # This test is optional - package dependencies from noarch repo may be incomplete
-  test:
-    name: Integration test
+  # Python 3 unit tests (mocked, no network/firewalld required)
+  test-py3-unit:
+    name: Python 3 unit tests
     runs-on: ubuntu-latest
-    continue-on-error: true
-    container:
-      image: getpagespeed/lts:el7
     steps:
-      - name: Install fds from GetPageSpeed repo
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install test dependencies
         run: |
-          yum -y install epel-release
-          yum -y install https://extras.getpagespeed.com/release-latest.rpm
-          yum-config-manager --disable getpagespeed-extras
-          yum -y install fds git python2-filelock
-
-      - name: Clone repository
-        run: git clone --depth 1 --branch ${{ github.ref_name }} https://github.com/${{ github.repository }}.git .
-
-      - name: Ensure fds required directories
-        run: mkdir -p /var/cache/fds /var/lib/fds
-
-      - name: Start dbus and firewalld
-        run: |
-          mkdir -p /var/run/dbus /run/lock
-          dbus-uuidgen --ensure || true
-          dbus-daemon --system --fork || true
-          firewalld --nofork &
-          sleep 3
-          firewall-cmd --state || echo "firewalld not running, skipping integration tests"
-
-      - name: Test IP unblock first
-        run: fds unblock 1.2.3.4 || true
-
-      - name: Test IP block
-        run: fds block 1.2.3.4
-
-      - name: Test country block
-        run: fds block China
-
-      - name: Test cron for sets updating
-        run: fds cron
-
-      - name: Unblock a country
-        run: fds unblock China
+          python -m pip install --upgrade pip
+          pip install pytest mock six netaddr 'cloudflare>=2.7.1,<2.20' appdirs
+      - name: Run unit tests
+        run: pytest tests/test_cloudflare_wrapper.py tests/test_py2_compat.py -v

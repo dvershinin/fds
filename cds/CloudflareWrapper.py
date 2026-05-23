@@ -22,6 +22,58 @@ home = expanduser("~")
 cf_config_filename = "{}/.cloudflare/cloudflare.cfg".format(home)
 
 
+def _read_account_ids():
+    """Read the comma-separated 'account_ids' list from cloudflare.cfg, or [] if absent."""
+    if not exists(cf_config_filename):
+        return []
+    config = ConfigParser()
+    config.read(cf_config_filename)
+    if not config.has_option('CloudFlare', 'account_ids'):
+        return []
+    raw = config.get('CloudFlare', 'account_ids')
+    return [a.strip() for a in raw.split(',') if a.strip()]
+
+
+def _cf_target_for(net):
+    """Map a netaddr IPAddress/IPNetwork to Cloudflare access-rule target type."""
+    if isinstance(net, IPAddress):
+        return 'ip6' if net.version == 6 else 'ip'
+    return 'ip_range'
+
+
+def _prompt_for_account_ids():
+    """Interactively prompt for the comma-separated account IDs list, returning normalized str or ''."""
+    print(
+        "Optional: enter Cloudflare account IDs that fds should push rules to "
+        "(comma-separated). Leave blank to push to every account the key sees "
+        "(legacy behavior). Recommended: set this so rules are not written into "
+        "unrelated accounts the key happens to have access to."
+    )
+    raw = six.moves.input("Account IDs: ").strip()
+    if not raw:
+        return ''
+    return ','.join(a.strip() for a in raw.split(',') if a.strip())
+
+
+def _persist_cloudflare_config(cf_token):
+    """Write the verified token + optional account_ids into cf_config_filename."""
+    config = ConfigParser()
+    config.read(cf_config_filename)
+    if not config.has_section('CloudFlare'):
+        config.add_section('CloudFlare')
+    config.set('CloudFlare', 'token', cf_token)
+    cleaned_ids = _prompt_for_account_ids()
+    if cleaned_ids:
+        config.set('CloudFlare', 'account_ids', cleaned_ids)
+    if not exists(dirname(cf_config_filename)):
+        os.makedirs(dirname(cf_config_filename))
+    with open(cf_config_filename, 'w') as configfile:
+        config.write(configfile)
+        # TODO evaluate security while creation
+        os.chmod(cf_config_filename, 0o600)
+    print('Token is valid. Saved to {}'.format(cf_config_filename))
+
+
 def network_for_cloudflare(network):
     """
     Cloudflare only supports bare IP, and /16 or /24 CIDR ranges
@@ -71,35 +123,20 @@ def suggest_set_up():
         "See https://fds.getpagespeed.com/cloudflare/")
     print('Type n to keep Cloudflare integration disabled, or enter token: ')
     cf_token = six.moves.input("Cloudflare token: ")
-    if cf_token and 'n' != cf_token.lower():
-        cf = CloudFlare(token=cf_token)
-        try:
-            token_verification = cf.user.tokens.verify.get()
-            if token_verification['status'] == 'active':
-                config = ConfigParser()
-                config.read(cf_config_filename)
-                section = "CloudFlare"
-                if not config.has_section(section):
-                    # prefer "fds" section in cloudflare.cfg for new setup
-                    section = "fds"
-                    config.add_section("CloudFlare")
-                config.set('CloudFlare', 'token', cf_token)
-                # ensure dir .cloudflare exists:
-                if not exists(dirname(cf_config_filename)):
-                    os.makedirs(dirname(cf_config_filename))
-                with open(cf_config_filename, 'w') as configfile:  # save
-                    config.write(configfile)
-                    # TODO evaluate security while creation
-                    os.chmod(cf_config_filename, 0o600)
-                print('Token is valid. Saved to {}'.format(cf_config_filename))
-                return True
-            else:
-                print('Token is inactive')
-        except CloudFlareAPIError as e:
-            print('Token verification failed: {}'.format(e))
-    else:
+    if not cf_token or 'n' == cf_token.lower():
         print('No token')
-    return False
+        return False
+    cf = CloudFlare(token=cf_token)
+    try:
+        token_verification = cf.user.tokens.verify.get()
+    except CloudFlareAPIError as e:
+        print('Token verification failed: {}'.format(e))
+        return False
+    if token_verification['status'] != 'active':
+        print('Token is inactive')
+        return False
+    _persist_cloudflare_config(cf_token)
+    return True
 
 
 class CloudflareWrapper(CloudFlare):
@@ -108,15 +145,31 @@ class CloudflareWrapper(CloudFlare):
         super(CloudflareWrapper, self).__init__()
 
         self.use = False
+        self.all_accounts = []
         # The premise is that user creates fds specific token and/or ensures "Account Resources"
         # setting for it to include only account fds operates on. So we do blocks on each account
         if not exists(cf_config_filename):
             return
+
+        # If the user has cached the account IDs in cloudflare.cfg, skip the /accounts listing
+        # entirely. The listing is fragile (Cloudflare 503s on it under classic Global API Key
+        # auth) AND it returns every account the key happens to see, which for legacy Global
+        # API Keys can include unrelated third-party accounts the user does not own.
+        account_ids = _read_account_ids()
+        if account_ids:
+            self.all_accounts = [{'id': aid, 'name': aid} for aid in account_ids]
+            self.use = True
+            return
+
         try:
             self.all_accounts = self.accounts.get()
             self.use = True
-        except CloudFlareAPIError as e:
-            print("Cloudflare API error: {}".format(e))
+        except CloudFlareAPIError:
+            log.exception(
+                "Cloudflare /accounts listing failed. "
+                "Set 'account_ids' in %s under [CloudFlare] to bypass this listing.",
+                cf_config_filename,
+            )
 
     def block_ip(self, ip, comment='fds'):
         if not self.use:
@@ -199,4 +252,33 @@ class CloudflareWrapper(CloudFlare):
                 raise e
 
     def unblock_ip(self, ip):
-        pass
+        if not self.use:
+            log.info('Skipped unblock in Cloudflare as it was not set up. Run fds config?')
+            return
+        for a in self.all_accounts:
+            for n in network_for_cloudflare(ip):
+                self._delete_block_rules_for(a, n)
+
+    def _delete_block_rules_for(self, account, net):
+        params = {
+            'mode': 'block',
+            'configuration.target': _cf_target_for(net),
+            'configuration.value': str(net),
+        }
+        try:
+            rules = self.accounts.firewall.access_rules.rules.get(account['id'], params=params)
+        except CloudFlareAPIError:
+            log.exception("Cloudflare list-rules failed in account %s", account['name'])
+            return
+        for rule in rules:
+            log.info(
+                'Unblocking %s in Cloudflare account %s (rule %s)',
+                net, account['name'], rule['id'],
+            )
+            try:
+                self.accounts.firewall.access_rules.rules.delete(account['id'], rule['id'])
+            except CloudFlareAPIError:
+                log.exception(
+                    "Cloudflare delete-rule failed for %s in %s",
+                    rule['id'], account['name'],
+                )
