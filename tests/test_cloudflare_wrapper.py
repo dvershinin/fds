@@ -231,3 +231,100 @@ def test_unblock_ip_noop_when_use_false(cf_cfg, patched_cf_init, tmp_path, monke
 
         fake_accounts.firewall.access_rules.rules.get.assert_not_called()
         fake_accounts.firewall.access_rules.rules.delete.assert_not_called()
+
+
+# --- _prompt_for_account_ids ---------------------------------------------------
+
+def test_prompt_for_account_ids_blank_returns_empty():
+    from cds.CloudflareWrapper import _prompt_for_account_ids
+    with patch("cds.CloudflareWrapper.six.moves.input", return_value="   "):
+        assert _prompt_for_account_ids() == ""
+
+
+def test_prompt_for_account_ids_normalizes_whitespace_and_commas():
+    from cds.CloudflareWrapper import _prompt_for_account_ids
+    with patch("cds.CloudflareWrapper.six.moves.input", return_value="  aaa,  bbb ,,ccc  "):
+        assert _prompt_for_account_ids() == "aaa,bbb,ccc"
+
+
+# --- _persist_cloudflare_config -----------------------------------------------
+
+def test_persist_cloudflare_config_writes_token_and_account_ids(cf_cfg, monkeypatch):
+    # Use a writable temp path
+    from cds import CloudflareWrapper as cw_mod
+    cfg_path = cf_cfg("")  # creates an empty file
+    monkeypatch.setattr(cw_mod, "cf_config_filename", cfg_path)
+
+    with patch("cds.CloudflareWrapper.six.moves.input", return_value="aid-1, aid-2"):
+        cw_mod._persist_cloudflare_config("the-token")
+
+    with open(cfg_path) as f:
+        body = f.read()
+    assert "[CloudFlare]" in body
+    assert "token = the-token" in body
+    assert "account_ids = aid-1,aid-2" in body
+
+
+def test_persist_cloudflare_config_omits_account_ids_when_blank(cf_cfg, monkeypatch):
+    from cds import CloudflareWrapper as cw_mod
+    cfg_path = cf_cfg("")
+    monkeypatch.setattr(cw_mod, "cf_config_filename", cfg_path)
+
+    with patch("cds.CloudflareWrapper.six.moves.input", return_value=""):
+        cw_mod._persist_cloudflare_config("the-token")
+
+    with open(cfg_path) as f:
+        body = f.read()
+    assert "token = the-token" in body
+    assert "account_ids" not in body
+
+
+# --- suggest_set_up early-return branches -------------------------------------
+
+def test_suggest_set_up_returns_false_on_blank_token():
+    from cds.CloudflareWrapper import suggest_set_up
+    with patch("cds.CloudflareWrapper.six.moves.input", return_value=""):
+        assert suggest_set_up() is False
+
+
+def test_suggest_set_up_returns_false_on_n_token():
+    from cds.CloudflareWrapper import suggest_set_up
+    with patch("cds.CloudflareWrapper.six.moves.input", return_value="n"):
+        assert suggest_set_up() is False
+
+
+def test_suggest_set_up_returns_false_on_verify_apierror():
+    from cds.CloudflareWrapper import suggest_set_up
+    fake_cf = MagicMock()
+    fake_cf.user.tokens.verify.get.side_effect = CloudFlareAPIError(401, "bad token")
+    with patch("cds.CloudflareWrapper.six.moves.input", return_value="some-token"), \
+         patch("cds.CloudflareWrapper.CloudFlare", return_value=fake_cf):
+        assert suggest_set_up() is False
+
+
+def test_suggest_set_up_returns_false_when_token_inactive():
+    from cds.CloudflareWrapper import suggest_set_up
+    fake_cf = MagicMock()
+    fake_cf.user.tokens.verify.get.return_value = {"status": "inactive"}
+    with patch("cds.CloudflareWrapper.six.moves.input", return_value="some-token"), \
+         patch("cds.CloudflareWrapper.CloudFlare", return_value=fake_cf):
+        assert suggest_set_up() is False
+
+
+def test_suggest_set_up_persists_on_active_token(cf_cfg, monkeypatch):
+    from cds import CloudflareWrapper as cw_mod
+    cfg_path = cf_cfg("")
+    monkeypatch.setattr(cw_mod, "cf_config_filename", cfg_path)
+
+    fake_cf = MagicMock()
+    fake_cf.user.tokens.verify.get.return_value = {"status": "active"}
+    # First input: the CF token, second input: account_ids list
+    inputs = iter(["valid-token", "aid-1, aid-2"])
+    with patch("cds.CloudflareWrapper.six.moves.input", side_effect=lambda *a, **k: next(inputs)), \
+         patch("cds.CloudflareWrapper.CloudFlare", return_value=fake_cf):
+        assert cw_mod.suggest_set_up() is True
+
+    with open(cfg_path) as f:
+        body = f.read()
+    assert "token = valid-token" in body
+    assert "account_ids = aid-1,aid-2" in body

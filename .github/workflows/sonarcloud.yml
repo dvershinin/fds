@@ -18,6 +18,15 @@ jobs:
           # Shallow clones disable git-blame info, which SonarCloud uses for
           # new-code detection across the project's history.
           fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov mock six netaddr 'cloudflare>=2.7.1,<2.20' appdirs
+      - name: Run tests with coverage
+        run: pytest tests/test_cloudflare_wrapper.py tests/test_py2_compat.py --cov=cds --cov=fds --cov-report=xml --cov-report=term
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v4
         env:
