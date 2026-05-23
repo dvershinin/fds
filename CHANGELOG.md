@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.0.45] - 2026-05-23
+### Fixed
+* `fds unblock <ip>` now actually removes the corresponding Cloudflare access rule (previously a no-op stub, so unblocks required a hand-rolled DELETE)
+* `fds block`/`unblock` no longer push rules to every Cloudflare account a Global API Key happens to see — configure `account_ids` under `[CloudFlare]` in `~/.cloudflare/cloudflare.cfg` to scope rules to your own account(s), and `fds config` will prompt for it
+* Listing the `/accounts` endpoint is skipped entirely when `account_ids` is configured, avoiding 503s reported under classic Global API Key auth
+
 ## [0.0.44] - 2026-02-20
 ### Fixed
 * `fds cron` no longer causes network connectivity outages by using runtime API for ipset updates instead of firewalld reload
