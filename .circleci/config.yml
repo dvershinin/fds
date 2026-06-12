@@ -1,5 +1,4 @@
 version: 2.1
-
 executors:
   deploy:
     parameters:
@@ -8,7 +7,7 @@ executors:
       arch:
         type: string
     docker:
-      - image: kroniak/ssh-client
+    - image: kroniak/ssh-client
     working_directory: /output
     environment:
       DISTRO: << parameters.dist >>
@@ -21,7 +20,7 @@ executors:
         type: integer
         default: 1
     docker:
-      - image: getpagespeed/rpmbuilder:<< parameters.dist >>
+    - image: getpagespeed/rpmbuilder:<< parameters.dist >>
     working_directory: /sources
     environment:
       RPMLINT: << parameters.rpmlint >>
@@ -29,386 +28,259 @@ jobs:
   build:
     parameters:
       dist:
-        description: "The dist tag of OS to build for"
+        description: The dist tag of OS to build for
         type: string
       resource_class:
-        description: "The resource class to use for the build"
+        description: The resource class to use for the build
         type: string
-        default: "small"
+        default: small
     resource_class: << parameters.resource_class >>
     executor:
       name: rpmbuilder
       dist: << parameters.dist >>
     steps:
-      - checkout
-      - run:
-          name: "Run the build itself: this will do rpmlint and check RPMs existence among other things."
-          command: ./utils/version-from-tag.sh && build
-      - run:
-          name: "Check for RPM files and halt if none exist"
-          command: |
-            set -x
-            if ls /output/*.rpm 1> /dev/null 2>&1; then
-              echo "RPM files found. Proceeding with persistence to workspace."
-            else
-              echo "No RPM files found. Halting the job."
-              curl --request POST --url https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel --header "Circle-Token: ${CIRCLE_TOKEN}"
-              circleci-agent step halt
-            fi
-      - persist_to_workspace:
-          root: /output
-          paths:
-            - "*.rpm"
+    - checkout
+    - run:
+        name: 'Run the build itself: this will do rpmlint and check RPMs existence
+          among other things.'
+        command: ./utils/version-from-tag.sh && build
+    - run:
+        name: Check for RPM files and halt if none exist
+        command: |-
+          if ls /output/*.rpm 1> /dev/null 2>&1; then
+            echo "RPM files found. Proceeding with persistence to workspace."
+            ls -al /output/*.rpm
+          else
+            echo "No RPM files found. Halting the job."
+            curl --request POST --url https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel --header "Circle-Token: ${CIRCLE_TOKEN}"
+            circleci-agent step halt
+          fi
+    - persist_to_workspace:
+        root: /output
+        paths:
+        - '*.rpm'
   deploy:
+    parallelism: 1
     parameters:
       dist:
-        description: "The dist tag of OS to deploy for"
+        description: The dist tag of OS to deploy for
         type: string
       arch:
-        description: "The architecture to deploy for"
+        description: The architecture to deploy for
         type: string
     executor:
       name: deploy
       dist: << parameters.dist >>
       arch: << parameters.arch >>
     steps:
-      - attach_workspace:
-          at: /output
-      - add_ssh_keys:
-          fingerprints:
-            - "8c:a4:dd:2c:47:4c:63:aa:90:0b:e0:d6:15:be:87:82"
-      - run:
-          name: "Ensure project specific upload directory to avoid deploy collisions"
-          command: >
-            ssh -o StrictHostKeyChecking=no
-            $GPS_BUILD_USER@$GPS_BUILD_SERVER
-            "mkdir -p ~/incoming/${CIRCLE_PROJECT_REPONAME}/${DISTRO}/${ARCH}/${CIRCLE_BRANCH}"
-      - run:
-          name: "Deploy all RPMs to GetPageSpeed repo."
-          command: |
-            echo "Uploading RPMs..."
-            ls -al
-            echo "Target upload directory: ~/incoming/${CIRCLE_PROJECT_REPONAME}/${DISTRO}/${ARCH}/${CIRCLE_BRANCH}/"
-            scp -o StrictHostKeyChecking=no -q -r *.rpm $GPS_BUILD_USER@$GPS_BUILD_SERVER:~/incoming/${CIRCLE_PROJECT_REPONAME}/${DISTRO}/${ARCH}/${CIRCLE_BRANCH}/
-      - run:
-          name: "Trigger Deploy Hook."
-          command: >
-            ssh -o StrictHostKeyChecking=no -q
-            $GPS_BUILD_USER@$GPS_BUILD_SERVER
-            "nohup ~/scripts/incoming.sh ${CIRCLE_PROJECT_REPONAME}/${DISTRO}/${ARCH}/${CIRCLE_BRANCH}/ > ~/incoming/$CIRCLE_PROJECT_REPONAME/$DISTRO/${ARCH}/${CIRCLE_BRANCH}/process.log 2>&1&"
+    - attach_workspace:
+        at: /output
+    - add_ssh_keys:
+        fingerprints:
+        - 8c:a4:dd:2c:47:4c:63:aa:90:0b:e0:d6:15:be:87:82
+    - run:
+        name: Ensure project specific upload directory to avoid deploy collisions
+        command: >-
+          ssh -o StrictHostKeyChecking=no $GPS_BUILD_USER@$GPS_BUILD_SERVER "mkdir
+          -p ~/incoming/${CIRCLE_PROJECT_REPONAME}/${DISTRO}/${ARCH}/${CIRCLE_BRANCH}"
+    - run:
+        name: Deploy all RPMs to GetPageSpeed repo.
+        command: >-
+          scp -o StrictHostKeyChecking=no -q -r *.rpm $GPS_BUILD_USER@$GPS_BUILD_SERVER:~/incoming/${CIRCLE_PROJECT_REPONAME}/${DISTRO}/${ARCH}/${CIRCLE_BRANCH}/
+    - run:
+        name: Trigger Deploy Hook.
+        command: >-
+          ssh -o StrictHostKeyChecking=no -q $GPS_BUILD_USER@$GPS_BUILD_SERVER "nohup
+          ~/scripts/incoming.sh ${CIRCLE_PROJECT_REPONAME}/${DISTRO}/${ARCH}/${CIRCLE_BRANCH}/
+          > ~/incoming/$CIRCLE_PROJECT_REPONAME/$DISTRO/${ARCH}/${CIRCLE_BRANCH}/process.log
+          2>&1&"
 workflows:
-  build-deploy-amzn2-aarch64:
+  build-deploy-el7-noarch:
     jobs:
     - build:
-        context: org-global
-        dist: amzn2
-        filters:
-          tags: {only: /.*/}
-        name: build-amzn2-aarch64
-        resource_class: arm.medium
-    - deploy:
-        arch: aarch64
-        context: org-global
-        dist: amzn2
-        filters:
-          branches: {ignore: /.*/}
-          tags: {only: /^v.*/}
-        name: deploy-amzn2-aarch64
-        requires: [build-amzn2-aarch64]
-  build-deploy-amzn2-x86_64:
-    jobs:
-    - build:
-        context: org-global
-        dist: amzn2
-        filters:
-          tags: {only: /.*/}
-        name: build-amzn2-x86_64
-    - deploy:
-        arch: x86_64
-        context: org-global
-        dist: amzn2
-        filters:
-          branches: {ignore: /.*/}
-          tags: {only: /^v.*/}
-        name: deploy-amzn2-x86_64
-        requires: [build-amzn2-x86_64]
-  build-deploy-amzn2023-aarch64:
-    jobs:
-    - build:
-        context: org-global
-        dist: amzn2023
-        filters:
-          tags: {only: /.*/}
-        name: build-amzn2023-aarch64
-        resource_class: arm.medium
-    - deploy:
-        arch: aarch64
-        context: org-global
-        dist: amzn2023
-        filters:
-          branches: {ignore: /.*/}
-          tags: {only: /^v.*/}
-        name: deploy-amzn2023-aarch64
-        requires: [build-amzn2023-aarch64]
-  build-deploy-amzn2023-x86_64:
-    jobs:
-    - build:
-        context: org-global
-        dist: amzn2023
-        filters:
-          tags: {only: /.*/}
-        name: build-amzn2023-x86_64
-    - deploy:
-        arch: x86_64
-        context: org-global
-        dist: amzn2023
-        filters:
-          branches: {ignore: /.*/}
-          tags: {only: /^v.*/}
-        name: deploy-amzn2023-x86_64
-        requires: [build-amzn2023-x86_64]
-  build-deploy-el10-aarch64:
-    jobs:
-    - build:
-        context: org-global
-        dist: el10
-        filters:
-          tags: {only: /.*/}
-        name: build-el10-aarch64
-        resource_class: arm.medium
-    - deploy:
-        arch: aarch64
-        context: org-global
-        dist: el10
-        filters:
-          branches: {ignore: /.*/}
-          tags: {only: /^v.*/}
-        name: deploy-el10-aarch64
-        requires: [build-el10-aarch64]
-  build-deploy-el10-x86_64:
-    jobs:
-    - build:
-        context: org-global
-        dist: el10
-        filters:
-          tags: {only: /.*/}
-        name: build-el10-x86_64
-    - deploy:
-        arch: x86_64
-        context: org-global
-        dist: el10
-        filters:
-          branches: {ignore: /.*/}
-          tags: {only: /^v.*/}
-        name: deploy-el10-x86_64
-        requires: [build-el10-x86_64]
-  build-deploy-el7-aarch64:
-    jobs:
-    - build:
+        name: build-el7-noarch
         context: org-global
         dist: el7
         filters:
-          tags: {only: /.*/}
-        name: build-el7-aarch64
-        resource_class: arm.medium
+          tags:
+            only: /.*/
     - deploy:
-        arch: aarch64
+        name: deploy-el7-noarch
         context: org-global
         dist: el7
+        arch: noarch
         filters:
-          branches: {ignore: /.*/}
-          tags: {only: /^v.*/}
-        name: deploy-el7-aarch64
-        requires: [build-el7-aarch64]
-  build-deploy-el7-x86_64:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v.*/
+        requires:
+        - build-el7-noarch
+  build-deploy-el8-noarch:
     jobs:
     - build:
-        context: org-global
-        dist: el7
-        filters:
-          tags: {only: /.*/}
-        name: build-el7-x86_64
-    - deploy:
-        arch: x86_64
-        context: org-global
-        dist: el7
-        filters:
-          branches: {ignore: /.*/}
-          tags: {only: /^v.*/}
-        name: deploy-el7-x86_64
-        requires: [build-el7-x86_64]
-  build-deploy-el8-aarch64:
-    jobs:
-    - build:
+        name: build-el8-noarch
         context: org-global
         dist: el8
         filters:
-          tags: {only: /.*/}
-        name: build-el8-aarch64
-        resource_class: arm.medium
+          tags:
+            only: /.*/
     - deploy:
-        arch: aarch64
+        name: deploy-el8-noarch
         context: org-global
         dist: el8
+        arch: noarch
         filters:
-          branches: {ignore: /.*/}
-          tags: {only: /^v.*/}
-        name: deploy-el8-aarch64
-        requires: [build-el8-aarch64]
-  build-deploy-el8-x86_64:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v.*/
+        requires:
+        - build-el8-noarch
+  build-deploy-el9-noarch:
     jobs:
     - build:
-        context: org-global
-        dist: el8
-        filters:
-          tags: {only: /.*/}
-        name: build-el8-x86_64
-    - deploy:
-        arch: x86_64
-        context: org-global
-        dist: el8
-        filters:
-          branches: {ignore: /.*/}
-          tags: {only: /^v.*/}
-        name: deploy-el8-x86_64
-        requires: [build-el8-x86_64]
-  build-deploy-el9-aarch64:
-    jobs:
-    - build:
+        name: build-el9-noarch
         context: org-global
         dist: el9
         filters:
-          tags: {only: /.*/}
-        name: build-el9-aarch64
-        resource_class: arm.medium
+          tags:
+            only: /.*/
     - deploy:
-        arch: aarch64
+        name: deploy-el9-noarch
         context: org-global
         dist: el9
+        arch: noarch
         filters:
-          branches: {ignore: /.*/}
-          tags: {only: /^v.*/}
-        name: deploy-el9-aarch64
-        requires: [build-el9-aarch64]
-  build-deploy-el9-x86_64:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v.*/
+        requires:
+        - build-el9-noarch
+  build-deploy-el10-noarch:
     jobs:
     - build:
+        name: build-el10-noarch
         context: org-global
-        dist: el9
+        dist: el10
         filters:
-          tags: {only: /.*/}
-        name: build-el9-x86_64
+          tags:
+            only: /.*/
     - deploy:
-        arch: x86_64
+        name: deploy-el10-noarch
         context: org-global
-        dist: el9
+        dist: el10
+        arch: noarch
         filters:
-          branches: {ignore: /.*/}
-          tags: {only: /^v.*/}
-        name: deploy-el9-x86_64
-        requires: [build-el9-x86_64]
-  build-deploy-fc43-aarch64:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v.*/
+        requires:
+        - build-el10-noarch
+  build-deploy-fc44-noarch:
     jobs:
     - build:
-        context: org-global
-        dist: fc43
-        filters:
-          tags: {only: /.*/}
-        name: build-fc43-aarch64
-        resource_class: arm.medium
-    - deploy:
-        arch: aarch64
-        context: org-global
-        dist: fc43
-        filters:
-          branches: {ignore: /.*/}
-          tags: {only: /^v.*/}
-        name: deploy-fc43-aarch64
-        requires: [build-fc43-aarch64]
-  build-deploy-fc43-x86_64:
-    jobs:
-    - build:
-        context: org-global
-        dist: fc43
-        filters:
-          tags: {only: /.*/}
-        name: build-fc43-x86_64
-    - deploy:
-        arch: x86_64
-        context: org-global
-        dist: fc43
-        filters:
-          branches: {ignore: /.*/}
-          tags: {only: /^v.*/}
-        name: deploy-fc43-x86_64
-        requires: [build-fc43-x86_64]
-  build-deploy-fc44-aarch64:
-    jobs:
-    - build:
+        name: build-fc44-noarch
         context: org-global
         dist: fc44
         filters:
-          tags: {only: /.*/}
-        name: build-fc44-aarch64
-        resource_class: arm.medium
+          tags:
+            only: /.*/
     - deploy:
-        arch: aarch64
+        name: deploy-fc44-noarch
         context: org-global
         dist: fc44
+        arch: noarch
         filters:
-          branches: {ignore: /.*/}
-          tags: {only: /^v.*/}
-        name: deploy-fc44-aarch64
-        requires: [build-fc44-aarch64]
-  build-deploy-fc44-x86_64:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v.*/
+        requires:
+        - build-fc44-noarch
+  build-deploy-fc43-noarch:
     jobs:
     - build:
+        name: build-fc43-noarch
         context: org-global
-        dist: fc44
+        dist: fc43
         filters:
-          tags: {only: /.*/}
-        name: build-fc44-x86_64
+          tags:
+            only: /.*/
     - deploy:
-        arch: x86_64
+        name: deploy-fc43-noarch
         context: org-global
-        dist: fc44
+        dist: fc43
+        arch: noarch
         filters:
-          branches: {ignore: /.*/}
-          tags: {only: /^v.*/}
-        name: deploy-fc44-x86_64
-        requires: [build-fc44-x86_64]
-  build-deploy-sles16-aarch64:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v.*/
+        requires:
+        - build-fc43-noarch
+  build-deploy-amzn2-noarch:
     jobs:
     - build:
+        name: build-amzn2-noarch
         context: org-global
-        dist: sles16
+        dist: amzn2
         filters:
-          tags: {only: /.*/}
-        name: build-sles16-aarch64
-        resource_class: arm.medium
+          tags:
+            only: /.*/
     - deploy:
-        arch: aarch64
+        name: deploy-amzn2-noarch
         context: org-global
-        dist: sles16
+        dist: amzn2
+        arch: noarch
         filters:
-          branches: {ignore: /.*/}
-          tags: {only: /^v.*/}
-        name: deploy-sles16-aarch64
-        requires: [build-sles16-aarch64]
-  build-deploy-sles16-x86_64:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v.*/
+        requires:
+        - build-amzn2-noarch
+  build-deploy-amzn2023-noarch:
     jobs:
     - build:
+        name: build-amzn2023-noarch
         context: org-global
-        dist: sles16
+        dist: amzn2023
         filters:
-          tags: {only: /.*/}
-        name: build-sles16-x86_64
+          tags:
+            only: /.*/
     - deploy:
-        arch: x86_64
+        name: deploy-amzn2023-noarch
+        context: org-global
+        dist: amzn2023
+        arch: noarch
+        filters:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v.*/
+        requires:
+        - build-amzn2023-noarch
+  build-deploy-sles16-noarch:
+    jobs:
+    - build:
+        name: build-sles16-noarch
         context: org-global
         dist: sles16
         filters:
-          branches: {ignore: /.*/}
-          tags: {only: /^v.*/}
-        name: deploy-sles16-x86_64
-        requires: [build-sles16-x86_64]
+          tags:
+            only: /.*/
+    - deploy:
+        name: deploy-sles16-noarch
+        context: org-global
+        dist: sles16
+        arch: noarch
+        filters:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v.*/
+        requires:
+        - build-sles16-noarch
