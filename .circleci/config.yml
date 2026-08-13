@@ -79,7 +79,7 @@ jobs:
         fingerprints:
         - 8c:a4:dd:2c:47:4c:63:aa:90:0b:e0:d6:15:be:87:82
     - run:
-        name: Ensure project specific upload directory to avoid deploy collisions
+        name: Create project upload directory
         command: >-
           ssh -o StrictHostKeyChecking=no $GPS_BUILD_USER@$GPS_BUILD_SERVER "mkdir
           -p ~/incoming/${CIRCLE_PROJECT_REPONAME}/${DISTRO}/${ARCH}/${CIRCLE_BRANCH}"
@@ -95,192 +95,192 @@ jobs:
           > ~/incoming/$CIRCLE_PROJECT_REPONAME/$DISTRO/${ARCH}/${CIRCLE_BRANCH}/process.log
           2>&1&"
 workflows:
-  build-deploy-el7-noarch:
+  build-deploy-el7-x86_64:
     jobs:
     - build:
-        name: build-el7-noarch
+        name: build-el7-x86_64
         context: org-global
         dist: el7
         filters:
           tags:
             only: /.*/
     - deploy:
-        name: deploy-el7-noarch
+        name: deploy-el7-x86_64
         context: org-global
         dist: el7
-        arch: noarch
+        arch: x86_64
         filters:
           branches:
             ignore: /.*/
           tags:
             only: /^v.*/
         requires:
-        - build-el7-noarch
-  build-deploy-el8-noarch:
+        - build-el7-x86_64
+  build-deploy-el8-x86_64:
     jobs:
     - build:
-        name: build-el8-noarch
+        name: build-el8-x86_64
         context: org-global
         dist: el8
         filters:
           tags:
             only: /.*/
     - deploy:
-        name: deploy-el8-noarch
+        name: deploy-el8-x86_64
         context: org-global
         dist: el8
-        arch: noarch
+        arch: x86_64
         filters:
           branches:
             ignore: /.*/
           tags:
             only: /^v.*/
         requires:
-        - build-el8-noarch
-  build-deploy-el9-noarch:
+        - build-el8-x86_64
+  build-deploy-el9-x86_64:
     jobs:
     - build:
-        name: build-el9-noarch
+        name: build-el9-x86_64
         context: org-global
         dist: el9
         filters:
           tags:
             only: /.*/
     - deploy:
-        name: deploy-el9-noarch
+        name: deploy-el9-x86_64
         context: org-global
         dist: el9
-        arch: noarch
+        arch: x86_64
         filters:
           branches:
             ignore: /.*/
           tags:
             only: /^v.*/
         requires:
-        - build-el9-noarch
-  build-deploy-el10-noarch:
+        - build-el9-x86_64
+  build-deploy-el10-x86_64:
     jobs:
     - build:
-        name: build-el10-noarch
+        name: build-el10-x86_64
         context: org-global
         dist: el10
         filters:
           tags:
             only: /.*/
     - deploy:
-        name: deploy-el10-noarch
+        name: deploy-el10-x86_64
         context: org-global
         dist: el10
-        arch: noarch
+        arch: x86_64
         filters:
           branches:
             ignore: /.*/
           tags:
             only: /^v.*/
         requires:
-        - build-el10-noarch
-  build-deploy-fc44-noarch:
+        - build-el10-x86_64
+  build-deploy-fc44-x86_64:
     jobs:
     - build:
-        name: build-fc44-noarch
+        name: build-fc44-x86_64
         context: org-global
         dist: fc44
         filters:
           tags:
             only: /.*/
     - deploy:
-        name: deploy-fc44-noarch
+        name: deploy-fc44-x86_64
         context: org-global
         dist: fc44
-        arch: noarch
+        arch: x86_64
         filters:
           branches:
             ignore: /.*/
           tags:
             only: /^v.*/
         requires:
-        - build-fc44-noarch
-  build-deploy-fc43-noarch:
+        - build-fc44-x86_64
+  build-deploy-fc43-x86_64:
     jobs:
     - build:
-        name: build-fc43-noarch
+        name: build-fc43-x86_64
         context: org-global
         dist: fc43
         filters:
           tags:
             only: /.*/
     - deploy:
-        name: deploy-fc43-noarch
+        name: deploy-fc43-x86_64
         context: org-global
         dist: fc43
-        arch: noarch
+        arch: x86_64
         filters:
           branches:
             ignore: /.*/
           tags:
             only: /^v.*/
         requires:
-        - build-fc43-noarch
-  build-deploy-amzn2-noarch:
+        - build-fc43-x86_64
+  build-deploy-amzn2-x86_64:
     jobs:
     - build:
-        name: build-amzn2-noarch
+        name: build-amzn2-x86_64
         context: org-global
         dist: amzn2
         filters:
           tags:
             only: /.*/
     - deploy:
-        name: deploy-amzn2-noarch
+        name: deploy-amzn2-x86_64
         context: org-global
         dist: amzn2
-        arch: noarch
+        arch: x86_64
         filters:
           branches:
             ignore: /.*/
           tags:
             only: /^v.*/
         requires:
-        - build-amzn2-noarch
-  build-deploy-amzn2023-noarch:
+        - build-amzn2-x86_64
+  build-deploy-amzn2023-x86_64:
     jobs:
     - build:
-        name: build-amzn2023-noarch
+        name: build-amzn2023-x86_64
         context: org-global
         dist: amzn2023
         filters:
           tags:
             only: /.*/
     - deploy:
-        name: deploy-amzn2023-noarch
+        name: deploy-amzn2023-x86_64
         context: org-global
         dist: amzn2023
-        arch: noarch
+        arch: x86_64
         filters:
           branches:
             ignore: /.*/
           tags:
             only: /^v.*/
         requires:
-        - build-amzn2023-noarch
-  build-deploy-sles16-noarch:
+        - build-amzn2023-x86_64
+  build-deploy-sles16-x86_64:
     jobs:
     - build:
-        name: build-sles16-noarch
+        name: build-sles16-x86_64
         context: org-global
         dist: sles16
         filters:
           tags:
             only: /.*/
     - deploy:
-        name: deploy-sles16-noarch
+        name: deploy-sles16-x86_64
         context: org-global
         dist: sles16
-        arch: noarch
+        arch: x86_64
         filters:
           branches:
             ignore: /.*/
           tags:
             only: /^v.*/
         requires:
-        - build-sles16-noarch
+        - build-sles16-x86_64
