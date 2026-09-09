@@ -1,0 +1,13 @@
+# Which CI config myci should read for this repo.
+#
+# myci prefers .github/workflows/*.yml over .circleci/config.yml for
+# GitHub-enrolled repos. That is wrong here: the workflows in this repo are
+# auxiliary (SonarCloud scan, super-linter, firewalld integration tests) and
+# stay on GitHub Actions, while the RPM build/deploy pipeline lives in the
+# buildstrap-generated .circleci/config.yml. Without this file myci runs the
+# linters instead of building packages -- and fails at parse, because the
+# SonarCloud workflow uses an action outside myci's supported set.
+#
+# Naming the file rather than copying it keeps the generated config the single
+# source of truth. See docs/github-support.md in the myci repo.
+config: .circleci/config.yml
