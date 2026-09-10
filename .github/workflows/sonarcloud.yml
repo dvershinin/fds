@@ -13,12 +13,12 @@ jobs:
     name: SonarCloud
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Shallow clones disable git-blame info, which SonarCloud uses for
           # new-code detection across the project's history.
           fetch-depth: 0
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
       - name: Install test dependencies
@@ -28,7 +28,7 @@ jobs:
       - name: Run tests with coverage
         run: pytest tests/test_cloudflare_wrapper.py tests/test_py2_compat.py --cov=cds --cov=fds --cov-report=xml --cov-report=term
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v4
+        uses: SonarSource/sonarqube-scan-action@v8
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
