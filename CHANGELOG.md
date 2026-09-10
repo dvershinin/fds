@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.0.46] - 2026-09-10
+### Fixed
+* Unblocking an IP independently cleans permanent and runtime firewalld entries and Cloudflare blocks, even when one layer is already absent or fails. It no longer reloads unrelated firewall state.
+* Cleanup failures now produce a nonzero exit after all layers are attempted, including Cloudflare discovery/list/delete errors. Concurrent removals succeed only after absence is verified.
+* Cloudflare cleanup handles all result pages and verifies exact address, target, and block mode before deleting, preserving allow and challenge rules. User-scoped rules visible through configured accounts are included.
+* IPv6 addresses and IPv4 /17 networks no longer silently skip Cloudflare cleanup.
+
 ## [0.0.45] - 2026-05-23
 ### Fixed
 * `fds unblock <ip>` now actually removes the corresponding Cloudflare access rule (previously a no-op stub, so unblocks required a hand-rolled DELETE)

@@ -144,7 +144,7 @@ class FirewallWrapper:
     def ensure_entry_in_ipset(self, ipset, entry):
         return ipset.addEntry(str(entry))
 
-    @do_maybe_already_enabled
+    @do_maybe_not_enabled
     def ensure_entry_not_in_ipset(self, ipset, entry):
         return ipset.removeEntry(str(entry))
 
@@ -375,15 +375,34 @@ class FirewallWrapper:
         # while cron will do "sync" behavior"
 
     def unblock_ip(self, ip_or_country_name):
-        block_ipset = self.get_block_ipset_for_ip(ip_or_country_name)
-        if not block_ipset:
-            # TODO err: unsupported protocol
-            raise Exception('Unsupported protocol')
-        log.info(
-            'Removing {} from block set {}'.format(
-                ip_or_country_name, block_ipset.get_property('name')
-            )
-        )
-        self.ensure_entry_not_in_ipset(block_ipset, ip_or_country_name)
-        log.info('Reloading FirewallD to apply permanent configuration')
-        self.fw.reload()
+        """Remove both firewall copies and report whether both are clean.
+
+        Args:
+            ip_or_country_name (IPNetwork): IPv4 or IPv6 network to unblock.
+
+        Returns:
+            bool: False if either layer could not be cleaned.
+        """
+        name = self.NETWORKBLOCK_IPSET_BASE_NAME + str(ip_or_country_name.version)
+        success = True
+        for layer, cleanup in [('permanent', self._unblock_permanent),
+                               ('runtime', self._unblock_runtime)]:
+            try:
+                cleanup(name, str(ip_or_country_name))
+            except Exception:
+                log.exception('Failed to unblock %s in firewalld %s', ip_or_country_name, layer)
+                success = False
+        return success
+
+    @do_maybe_invalid_ipset
+    @do_maybe_not_enabled
+    def _unblock_permanent(self, name, entry):
+        """Remove an existing permanent entry without creating missing ipsets."""
+        if name in self.config.getIPSetNames():
+            self.config.getIPSetByName(name).removeEntry(entry)
+
+    @do_maybe_invalid_ipset
+    @do_maybe_not_enabled
+    def _unblock_runtime(self, name, entry):
+        """Remove a runtime entry without reloading unrelated firewall state."""
+        self.fw.removeEntry(name, entry)

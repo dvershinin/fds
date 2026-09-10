@@ -95,6 +95,8 @@ def network_for_cloudflare(network):
     network = str(network)
     network = IPNetwork(network)
     cidr = network.prefixlen
+    if network.version == 6:
+        return [IPAddress(network)] if cidr == 128 else [network]
     nets = []
     if cidr == 32:
         # case to ip addr to remove /32 from presentation (for Cloudflare)
@@ -107,7 +109,7 @@ def network_for_cloudflare(network):
             pass
         elif cidr == 24:
             nets.append(network)
-        elif cidr > 17:
+        elif cidr >= 17:
             # 17-23
             nets = network.subnet(24, count=None, fmt=None)
         elif cidr == 16:
@@ -145,6 +147,7 @@ class CloudflareWrapper(CloudFlare):
         super(CloudflareWrapper, self).__init__()
 
         self.use = False
+        self.account_lookup_failed = False
         self.all_accounts = []
         # The premise is that user creates fds specific token and/or ensures "Account Resources"
         # setting for it to include only account fds operates on. So we do blocks on each account
@@ -165,6 +168,7 @@ class CloudflareWrapper(CloudFlare):
             self.all_accounts = self.accounts.get()
             self.use = True
         except CloudFlareAPIError:
+            self.account_lookup_failed = True
             log.exception(
                 "Cloudflare /accounts listing failed. "
                 "Set 'account_ids' in %s under [CloudFlare] to bypass this listing.",
@@ -252,24 +256,60 @@ class CloudflareWrapper(CloudFlare):
                 raise e
 
     def unblock_ip(self, ip):
+        """Remove matching block rules, attempting every configured account.
+
+        Args:
+            ip (IPNetwork or str): Address or network to unblock.
+
+        Returns:
+            bool: Whether cleanup succeeded, or Cloudflare was not configured.
+        """
         if not self.use:
+            if self.account_lookup_failed:
+                return False
             log.info('Skipped unblock in Cloudflare as it was not set up. Run fds config?')
-            return
+            return True
+        success = True
         for a in self.all_accounts:
             for n in network_for_cloudflare(ip):
-                self._delete_block_rules_for(a, n)
+                try:
+                    if not self._delete_block_rules_for(a, n):
+                        success = False
+                except Exception:
+                    log.exception('Cloudflare cleanup failed for %s in account %s', n, a['name'])
+                    success = False
+        return success
 
-    def _delete_block_rules_for(self, account, net):
+    def _block_rules_for(self, account, net):
+        """Collect exact block matches from all pages before deleting any."""
         params = {
             'mode': 'block',
             'configuration.target': _cf_target_for(net),
             'configuration.value': str(net),
+            'match': 'all',
+            'per_page': 50,
+            'page': 1,
         }
+        rules = []
+        while True:
+            page = self.accounts.firewall.access_rules.rules.get(account['id'], params=dict(params))
+            for rule in page:
+                config = rule['configuration']
+                if (rule['mode'] == 'block' and config['target'] == _cf_target_for(net)
+                        and config['value'] == str(net)):
+                    rules.append(rule)
+            if len(page) < params['per_page']:
+                return rules
+            params['page'] += 1
+
+    def _delete_block_rules_for(self, account, net):
+        """Delete matching rules and report failures after attempting all."""
         try:
-            rules = self.accounts.firewall.access_rules.rules.get(account['id'], params=params)
+            rules = self._block_rules_for(account, net)
         except CloudFlareAPIError:
             log.exception("Cloudflare list-rules failed in account %s", account['name'])
-            return
+            return False
+        success = True
         for rule in rules:
             log.info(
                 'Unblocking %s in Cloudflare account %s (rule %s)',
@@ -277,8 +317,17 @@ class CloudflareWrapper(CloudFlare):
             )
             try:
                 self.accounts.firewall.access_rules.rules.delete(account['id'], rule['id'])
-            except CloudFlareAPIError:
-                log.exception(
-                    "Cloudflare delete-rule failed for %s in %s",
-                    rule['id'], account['name'],
-                )
+            except Exception:
+                # A concurrent unban (or the same user rule visible in another
+                # account) may already have removed it. Verify absence instead
+                # of interpreting an HTTP error as an already-clean state.
+                try:
+                    remaining = self._block_rules_for(account, net)
+                except Exception:
+                    log.exception('Could not verify Cloudflare rule %s after delete failure', rule['id'])
+                    success = False
+                    continue
+                if any(r['id'] == rule['id'] for r in remaining):
+                    log.exception('Cloudflare delete-rule failed for %s in %s', rule['id'], account['name'])
+                    success = False
+        return success

@@ -106,22 +106,30 @@ def action_cron():
 
 
 def action_unblock(ip_or_country_name):
-    fw = FirewallWrapper()
-    # CF
-    from cds.CloudflareWrapper import CloudflareWrapper
-    cw = CloudflareWrapper()
     ip_or_country_name = six.text_type(ip_or_country_name)
     try:
         ip_or_country_name = ipaddress.ip_network(ip_or_country_name)
-        fw.unblock_ip(ip_or_country_name)
-        cw.unblock_ip(ip_or_country_name)
     except ValueError:
         countries = Countries()
         regions = countries.get_continents()
         if ip_or_country_name in regions:
             unblock_region(ip_or_country_name)
         else:
-            fw.unblock_country(ip_or_country_name)
+            FirewallWrapper().unblock_country(ip_or_country_name)
+        return
+
+    from cds.CloudflareWrapper import CloudflareWrapper
+    success = True
+    for layer, wrapper in [('firewalld', FirewallWrapper), ('Cloudflare', CloudflareWrapper)]:
+        try:
+            # Construct each backend inside its own boundary: a stopped firewall
+            # or invalid Cloudflare configuration must not skip the other one.
+            if not wrapper().unblock_ip(ip_or_country_name):
+                success = False
+        except Exception:
+            log.exception('Failed to unblock %s in %s', ip_or_country_name, layer)
+            success = False
+    return 0 if success else 1
 
 
 def action_reset():

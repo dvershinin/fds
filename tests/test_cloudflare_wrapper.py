@@ -166,13 +166,16 @@ def test_unblock_ip_searches_and_deletes_per_account(cf_cfg, patched_cf_init):
         "aaa": [{"id": "rule-aaa-1"}, {"id": "rule-aaa-2"}],
         "bbb": [{"id": "rule-bbb-1"}],
     }
+    for rules in rules_by_account.values():
+        for rule in rules:
+            rule.update(mode='block', configuration={'target': 'ip', 'value': '192.0.2.5'})
     fake_accounts.firewall.access_rules.rules.get.side_effect = (
         lambda account_id, params=None: rules_by_account[account_id]
     )
 
     with patch.object(CloudflareWrapper, "accounts", new=fake_accounts, create=True):
         cw = CloudflareWrapper()
-        cw.unblock_ip("192.0.2.5")
+        assert cw.unblock_ip("192.0.2.5") is True
 
         get = fake_accounts.firewall.access_rules.rules.get
         delete = fake_accounts.firewall.access_rules.rules.delete
@@ -204,13 +207,14 @@ def test_unblock_ip_continues_on_per_account_error(cf_cfg, patched_cf_init):
     def get_side_effect(account_id, params=None):
         if account_id == "aaa":
             raise CloudFlareAPIError(500, "transient")
-        return [{"id": "rule-bbb-1"}]
+        return [{"id": "rule-bbb-1", "mode": "block",
+                 "configuration": {"target": "ip", "value": "192.0.2.5"}}]
 
     fake_accounts.firewall.access_rules.rules.get.side_effect = get_side_effect
 
     with patch.object(CloudflareWrapper, "accounts", new=fake_accounts, create=True):
         cw = CloudflareWrapper()
-        cw.unblock_ip("192.0.2.5")  # must not raise
+        assert cw.unblock_ip("192.0.2.5") is False  # report failure after attempting bbb
 
         # bbb still got its delete despite aaa's get failing
         delete = fake_accounts.firewall.access_rules.rules.delete
