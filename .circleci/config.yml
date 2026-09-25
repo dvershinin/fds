@@ -84,6 +84,13 @@ jobs:
           ssh -o StrictHostKeyChecking=no $GPS_BUILD_USER@$GPS_BUILD_SERVER "mkdir
           -p ~/incoming/${CIRCLE_PROJECT_REPONAME}/${DISTRO}/${ARCH}/${CIRCLE_BRANCH:-master}"
     - run:
+        name: Drop SRPMs the repo server would discard
+        command: |
+          case "${DISTRO}-${ARCH}" in
+            amzn2023-x86_64|el10-x86_64|el7-x86_64|el8-x86_64|el9-x86_64) ;;
+            *) rm -f ./*.src.rpm ;;
+          esac
+    - run:
         name: Deploy all RPMs to GetPageSpeed repo.
         command: >-
           scp -o StrictHostKeyChecking=no -q -r *.rpm $GPS_BUILD_USER@$GPS_BUILD_SERVER:~/incoming/${CIRCLE_PROJECT_REPONAME}/${DISTRO}/${ARCH}/${CIRCLE_BRANCH:-master}/
