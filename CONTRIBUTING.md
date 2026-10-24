@@ -22,9 +22,9 @@ Running as regular user:
 
 sudo visudo -f /etc/sudoers.d/python-fds
 
-danila ALL=(ALL) NOPASSWD: /opt/fds/venv/bin/python
+youruser ALL=(ALL) NOPASSWD: /opt/fds/venv/bin/python
 
-danila ALL=(ALL) NOPASSWD: /home/danila/Projects/fds/venv/bin/python
+youruser ALL=(ALL) NOPASSWD: /path/to/fds/venv/bin/python
 
 Pycharm: ensure "Emulate terminal" in run configurations, in order not to be prompted for authentication.
 
