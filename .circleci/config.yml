@@ -186,6 +186,27 @@ workflows:
             only: /^v.*/
         requires:
         - build-el10-x86_64
+  build-deploy-fc45-x86_64:
+    jobs:
+    - build:
+        name: build-fc45-x86_64
+        context: build-deps
+        dist: fc45
+        filters:
+          tags:
+            only: /.*/
+    - deploy:
+        name: deploy-fc45-x86_64
+        context: deploy
+        dist: fc45
+        arch: x86_64
+        filters:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v.*/
+        requires:
+        - build-fc45-x86_64
   build-deploy-fc44-x86_64:
     jobs:
     - build:
@@ -207,27 +228,6 @@ workflows:
             only: /^v.*/
         requires:
         - build-fc44-x86_64
-  build-deploy-fc43-x86_64:
-    jobs:
-    - build:
-        name: build-fc43-x86_64
-        context: build-deps
-        dist: fc43
-        filters:
-          tags:
-            only: /.*/
-    - deploy:
-        name: deploy-fc43-x86_64
-        context: deploy
-        dist: fc43
-        arch: x86_64
-        filters:
-          branches:
-            ignore: /.*/
-          tags:
-            only: /^v.*/
-        requires:
-        - build-fc43-x86_64
   build-deploy-amzn2-x86_64:
     jobs:
     - build:
