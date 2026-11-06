@@ -41,7 +41,8 @@ jobs:
     steps:
     - checkout
     - run:
-        name: 'Run the build itself: this will do rpmlint and check RPMs existence among other things.'
+        name: 'Run the build itself: this will do rpmlint and check RPMs existence
+          among other things.'
         command: ./utils/version-from-tag.sh && build
     - run:
         name: Check for RPM files and halt if none exist
